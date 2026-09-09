@@ -1,0 +1,50 @@
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root { color-scheme: light; }
+
+body {
+  background: #F7F8FA;
+  color: #1B3A6B;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Campos: se leen como los renglones del talonario, no como cajas de SaaS */
+.campo {
+  @apply w-full bg-white border border-linea px-3 py-2 text-[15px] text-slate-800
+         outline-none focus:border-trama focus:ring-2 focus:ring-trama/20;
+}
+.etiqueta {
+  @apply block mb-1 text-[13px] font-semibold text-tinta;
+}
+.boton {
+  @apply inline-flex items-center justify-center gap-2 bg-tinta text-white font-semibold
+         px-5 py-3 text-[15px] hover:bg-trama focus:outline-none focus:ring-2
+         focus:ring-trama focus:ring-offset-2 disabled:opacity-50 transition-colors;
+}
+.boton-suave {
+  @apply inline-flex items-center justify-center gap-2 border border-tinta text-tinta
+         font-semibold px-5 py-3 text-[15px] hover:bg-tinta hover:text-white
+         focus:outline-none focus:ring-2 focus:ring-trama focus:ring-offset-2 transition-colors;
+}
+.marco {
+  @apply bg-white border-2 border-tinta;
+}
+
+input[type=number]::-webkit-outer-spin-button,
+input[type=number]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+input[type=number] { -moz-appearance: textfield; }
+
+@media print {
+  .no-print { display: none !important; }
+  body { background: #fff; }
+  .hoja { border: 2px solid #1B3A6B; margin: 0; box-shadow: none; }
+  @page { size: A4; margin: 12mm; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; animation: none !important; }
+}
