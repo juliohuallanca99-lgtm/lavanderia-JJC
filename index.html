@@ -25,6 +25,8 @@
   a{color:var(--trama)}
   .mono{font-family:'IBM Plex Mono',ui-monospace,monospace}
   .cab{border-bottom:2px solid var(--tinta); padding-bottom:20px}
+  .logo{height:52px; width:auto; display:block; margin-bottom:14px}
+  .logo-hoja{height:40px; width:auto}
   .sub{color:var(--texto); max-width:62ch}
   .volver{font-weight:600; text-decoration:none; font-size:15px}
 
@@ -113,6 +115,7 @@
     main{padding:0; max-width:none}
     .hoja{border:2px solid var(--tinta)}
     @page{size:A4; margin:12mm}
+    .logo-hoja{height:36px}
   }
   @media (prefers-reduced-motion: reduce){*{transition:none !important}}
 </style>
@@ -180,6 +183,7 @@ function vistaPortal(){
   emitida = null;
   app.innerHTML = `
     <header class="cab">
+      <img class="logo" src="jjc.jpg" alt="JJC Ingeniería y Construcción">
       <p class="mono" style="color:var(--sello);font-size:14px;margin:0">CC0174 · Marcobre — Mina Justa</p>
       <h1>Boletas de lavandería</h1>
       <p class="sub">El mismo talonario de siempre, ahora en el celular. Cada boleta recibe su
@@ -332,7 +336,10 @@ function vistaEmitida(){
     </div>
     <article class="marco hoja" style="margin-top:24px">
       <div class="hoja-cab">
-        <p class="numero mono">Nº ${corr(b.numero)}</p>
+        <div>
+          <img class="logo-hoja" src="jjc.jpg" alt="JJC">
+          <p class="numero mono" style="margin-top:8px">Nº ${corr(b.numero)}</p>
+        </div>
         <h2>BOLETA DE LAVANDERÍA</h2>
       </div>
       <dl class="datos">
