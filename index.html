@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Boletas de Lavandería — CC0154</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --tinta:#1B3A6B; --trama:#2E5FA3; --sello:#C8102E;
+    --papel:#F7F8FA; --linea:#C9D6E8; --texto:#334155;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0; background:var(--papel); color:var(--tinta);
+    font-family:'IBM Plex Sans',system-ui,sans-serif; font-size:16px; line-height:1.5;
+    -webkit-tap-highlight-color:transparent;
+  }
+  main{max-width:760px; margin:0 auto; padding:32px 20px 64px}
+  h1{font-size:30px; line-height:1.15; margin:8px 0 0}
+  h2{font-size:19px; margin:0}
+  p{margin:8px 0}
+  a{color:var(--trama)}
+  .mono{font-family:'IBM Plex Mono',ui-monospace,monospace}
+  .cab{border-bottom:2px solid var(--tinta); padding-bottom:20px}
+  .sub{color:var(--texto); max-width:62ch}
+  .volver{font-weight:600; text-decoration:none; font-size:15px}
+
+  .marco{background:#fff; border:2px solid var(--tinta); padding:20px}
+  .accesos{display:grid; gap:18px; margin-top:36px}
+  @media(min-width:640px){.accesos{grid-template-columns:1fr 1fr}}
+  .acceso{display:block; text-decoration:none; color:inherit; transition:background .15s}
+  .acceso:hover{background:var(--papel)}
+  .acceso span{display:block; margin-top:14px; color:var(--trama); font-weight:600}
+
+  label{display:block; margin-bottom:4px; font-size:13px; font-weight:600; color:var(--tinta)}
+  input,textarea,select{
+    width:100%; background:#fff; border:1px solid var(--linea); padding:9px 11px;
+    font-family:inherit; font-size:15px; color:var(--texto); border-radius:0;
+  }
+  input:focus,textarea:focus{outline:none; border-color:var(--trama); box-shadow:0 0 0 3px rgba(46,95,163,.18)}
+  input:disabled{background:var(--papel)}
+  input[type=number]::-webkit-outer-spin-button,
+  input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+  input[type=number]{-moz-appearance:textfield}
+  .rejilla{display:grid; gap:16px; margin-top:24px}
+  @media(min-width:640px){.rejilla{grid-template-columns:1fr 1fr}}
+
+  button{font-family:inherit; cursor:pointer; border-radius:0}
+  .btn{
+    display:inline-flex; align-items:center; justify-content:center;
+    background:var(--tinta); color:#fff; border:2px solid var(--tinta);
+    font-weight:600; font-size:15px; padding:11px 20px; transition:background .15s;
+  }
+  .btn:hover{background:var(--trama); border-color:var(--trama)}
+  .btn:disabled{opacity:.5; cursor:default}
+  .btn2{
+    display:inline-flex; align-items:center; justify-content:center;
+    background:#fff; color:var(--tinta); border:2px solid var(--tinta);
+    font-weight:600; font-size:15px; padding:11px 20px; text-decoration:none; transition:all .15s;
+  }
+  .btn2:hover{background:var(--tinta); color:#fff}
+  .acciones{display:flex; flex-wrap:wrap; gap:12px; margin-top:24px}
+  :focus-visible{outline:3px solid var(--trama); outline-offset:2px}
+
+  .aviso{border-left:4px solid var(--sello); background:#fff; padding:12px 14px; margin-top:18px; color:var(--sello); font-size:15px}
+  .nota{border-left:4px solid var(--linea); background:#fff; padding:12px 14px; margin-top:18px; color:var(--texto); font-size:15px}
+
+  .prendas{margin-top:14px; border:1px solid var(--linea); background:#fff; list-style:none; padding:0}
+  .prendas li{border-bottom:1px solid var(--linea); padding:9px 12px}
+  .prendas li:last-child{border-bottom:none}
+  .prendas li.activo{background:var(--papel)}
+  .fila{display:flex; align-items:center; gap:12px}
+  .fila span{flex:1; font-size:15px; font-weight:500}
+  .fila input{width:76px; text-align:center}
+  .desc{margin-top:8px}
+  .totales{display:flex; justify-content:space-between; align-items:baseline; border-bottom:1px solid var(--tinta); padding-bottom:8px; margin-top:36px}
+
+  table{width:100%; border-collapse:collapse; font-size:15px; margin-top:14px}
+  th,td{border:1px solid var(--linea); padding:7px 10px; text-align:left}
+  th{background:var(--papel)}
+  td.num,th.num{text-align:center; width:82px}
+  tr.dif{background:rgba(200,16,46,.06)}
+  tr.total{background:var(--papel); font-weight:700}
+
+  .hoja h2{border:2px solid var(--tinta); border-radius:999px; padding:6px 20px; font-size:17px}
+  .hoja-cab{display:flex; justify-content:space-between; align-items:flex-start; gap:12px; border-bottom:1px solid var(--linea); padding-bottom:14px}
+  .numero{font-size:23px; font-weight:600; color:var(--sello); margin:0}
+  .datos{display:grid; grid-template-columns:1fr 1fr; gap:2px 22px; margin:14px 0 0; padding:0}
+  .datos div{border-bottom:1px solid var(--linea); padding:5px 0}
+  .datos dt{font-size:13px; font-weight:600; color:var(--tinta)}
+  .datos dd{margin:0; color:var(--texto)}
+
+  .lista{list-style:none; padding:0; margin:24px 0 0}
+  .lista li{margin-bottom:12px}
+  .tarjeta{width:100%; text-align:left; background:#fff; border:2px solid var(--tinta); padding:16px; font:inherit; color:inherit; transition:background .15s}
+  .tarjeta:hover{background:var(--papel)}
+  .lin1{display:flex; flex-wrap:wrap; justify-content:space-between; align-items:baseline; gap:8px}
+  .estado{font-size:13px; font-weight:600; padding:4px 12px; border:1px solid var(--tinta)}
+  .estado.ok{background:var(--tinta); color:#fff}
+  .filtros{display:flex; gap:8px; margin-top:20px; flex-wrap:wrap}
+  .filtros button{background:#fff; border:1px solid var(--linea); color:var(--tinta); font-weight:600; font-size:15px; padding:9px 16px}
+  .filtros button[aria-pressed=true]{background:var(--tinta); border-color:var(--tinta); color:#fff}
+  .barra{display:flex; flex-wrap:wrap; justify-content:space-between; align-items:flex-start; gap:12px; border-bottom:2px solid var(--tinta); padding-bottom:20px}
+
+  .cargando{color:var(--texto); margin-top:32px}
+
+  @media print{
+    .no-print{display:none !important}
+    body{background:#fff}
+    main{padding:0; max-width:none}
+    .hoja{border:2px solid var(--tinta)}
+    @page{size:A4; margin:12mm}
+  }
+  @media (prefers-reduced-motion: reduce){*{transition:none !important}}
+</style>
+</head>
+<body>
+<main id="app"><p class="cargando">Cargando…</p></main>
+
+<script type="module">
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+
+/* ==========================================================
+   1. CONFIGURACIÓN — reemplaza estos dos valores
+   Supabase → Project Settings → API
+   ========================================================== */
+const SUPABASE_URL = 'https://TU-PROYECTO.supabase.co';
+const SUPABASE_ANON_KEY = 'TU-ANON-KEY';
+/* ========================================================== */
+
+const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+const TIPOS = ['CAMISA MANGA CORTA','CAMISA MANGA LARGA','POLO MANGA CORTA','POLO MANGA LARGA',
+  'CHOMPA DE LANA','PANTALÓN JEANS','PANTALÓN DRILL','OVEROL SIMPLE','OVEROL TÉRMICO',
+  'CASACA TÉRMICA','CHALECO','BIVIDÍ','TOALLA','CORTA VIENTO','SHORT','CALZONCILLO',
+  'MEDIAS','POLERAS','PANTALÓN BUZO','PIJAMA','OTROS'];
+
+const app = document.getElementById('app');
+const corr = n => String(n).padStart(5,'0');
+const fecha = iso => { if(!iso) return ''; const [a,m,d] = iso.slice(0,10).split('-'); return `${d}/${m}/${a}`; };
+const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const hoy = () => new Date().toISOString().slice(0,10);
+
+let form = null, items = null, emitida = null, sesion = null, perfil = null,
+    filtro = 'enviada', boletas = [], abierta = null, detalle = [], valida = null;
+
+const resetForm = () => {
+  form = { fecha:hoy(), empresa:'JJC CONTRATISTAS GENERALES S.A.', nombres:'', dni:'',
+           hospedaje:'', habitacion:'', observaciones:'' };
+  items = TIPOS.map(() => ({ cantidad:'', descripcion:'' }));
+};
+resetForm();
+
+/* ---------- Router ---------- */
+window.addEventListener('hashchange', render);
+sb.auth.onAuthStateChange((_e, s) => { sesion = s; perfil = null; render(); });
+
+(async () => {
+  const { data } = await sb.auth.getSession();
+  sesion = data.session;
+  render();
+})();
+
+function ruta(){ return (location.hash || '#/').replace('#','') || '/'; }
+function ir(r){ location.hash = '#' + r; }
+
+async function render(){
+  const r = ruta();
+  if (r === '/boleta') return emitida ? vistaEmitida() : vistaFormulario();
+  if (r === '/mis-boletas') return vistaMisBoletas();
+  if (r === '/lavanderia') return vistaLavanderia();
+  return vistaPortal();
+}
+
+/* ---------- Portal ---------- */
+function vistaPortal(){
+  emitida = null;
+  app.innerHTML = `
+    <header class="cab">
+      <p class="mono" style="color:var(--sello);font-size:14px;margin:0">CC0154 · Marcobre — Mina Justa</p>
+      <h1>Boletas de lavandería</h1>
+      <p class="sub">El mismo talonario de siempre, ahora en el celular. Cada boleta recibe su
+      número apenas se registra, y queda cerrada cuando lavandería la recoge del hotel.</p>
+    </header>
+    <div class="accesos">
+      <a class="marco acceso" href="#/boleta">
+        <h2>Enviar mi ropa</h2>
+        <p class="sub">Llena tu boleta con tu DNI y las prendas que entregas. Al guardarla te damos
+        el número para imprimir o mostrar en recepción.</p>
+        <span>Llenar boleta</span>
+      </a>
+      <a class="marco acceso" href="#/lavanderia">
+        <h2>Personal de lavandería</h2>
+        <p class="sub">Ingresa con tu usuario para revisar las boletas pendientes por hotel, contar
+        las prendas, anotar los kilos y dar el visto bueno.</p>
+        <span>Iniciar sesión</span>
+      </a>
+    </div>
+    <p style="margin-top:32px" class="sub">¿Ya enviaste tu ropa y quieres saber si fue recogida?
+      <a href="#/mis-boletas"><strong>Consulta con tu DNI</strong></a>.</p>`;
+}
+
+/* ---------- Formulario ---------- */
+function totalPrendas(){ return items.reduce((s,i) => s + (parseInt(i.cantidad,10)||0), 0); }
+
+function vistaFormulario(aviso){
+  app.innerHTML = `
+    <header class="cab">
+      <a class="volver" href="#/">← Inicio</a>
+      <h1>Enviar mi ropa</h1>
+      <p class="sub">El número de boleta se asigna solo, al momento de guardar.</p>
+    </header>
+    <section class="rejilla">
+      ${campo('fecha','Fecha','date')}
+      ${campo('empresa','Empresa')}
+      ${campo('nombres','Nombres y apellidos','text','Ej. HUALLANCA HUAMANI, JULIO CESAR')}
+      ${campo('dni','DNI','text','8 dígitos')}
+      ${campo('hospedaje','Hospedaje','text','Nombre del hotel')}
+      ${campo('habitacion','Nº habitación')}
+    </section>
+    <section>
+      <div class="totales">
+        <h2>Prendas que entregas</h2>
+        <p class="mono" style="margin:0">Total: <strong style="color:var(--sello)" id="tot">${totalPrendas()}</strong></p>
+      </div>
+      <ul class="prendas">
+        ${TIPOS.map((t,i) => {
+          const act = (parseInt(items[i].cantidad,10)||0) > 0;
+          return `<li class="${act?'activo':''}">
+            <div class="fila">
+              <span>${t}</span>
+              <input type="number" min="0" inputmode="numeric" data-cant="${i}"
+                     aria-label="Cantidad de ${t}" value="${esc(items[i].cantidad)}">
+            </div>
+            ${act ? `<input class="desc" data-desc="${i}" aria-label="Descripción de ${t}"
+                     placeholder="Descripción (color, marca, detalle)" value="${esc(items[i].descripcion)}">` : ''}
+          </li>`;
+        }).join('')}
+      </ul>
+    </section>
+    <section style="margin-top:24px">
+      <label for="observaciones">Observaciones</label>
+      <textarea id="observaciones" data-f="observaciones" rows="3"
+        placeholder="Manchas, prendas delicadas, indicaciones de lavado…">${esc(form.observaciones)}</textarea>
+    </section>
+    ${aviso ? `<p class="aviso" role="alert">${esc(aviso)}</p>` : ''}
+    <div class="acciones">
+      <button class="btn" id="guardar">Guardar y generar número</button>
+      <a class="btn2" href="#/mis-boletas">Ver mis boletas</a>
+    </div>`;
+
+  app.querySelectorAll('[data-f]').forEach(el =>
+    el.addEventListener('input', e => { form[e.target.dataset.f] = e.target.value; }));
+
+  app.querySelectorAll('[data-cant]').forEach(el =>
+    el.addEventListener('input', e => {
+      const i = +e.target.dataset.cant;
+      const v = e.target.value.replace(/\D/g,'');
+      const antes = (parseInt(items[i].cantidad,10)||0) > 0;
+      items[i].cantidad = v;
+      const ahora = (parseInt(v,10)||0) > 0;
+      if (antes !== ahora) { vistaFormulario(); const n = app.querySelector(`[data-cant="${i}"]`); n.focus(); n.select?.(); }
+      else document.getElementById('tot').textContent = totalPrendas();
+    }));
+
+  app.querySelectorAll('[data-desc]').forEach(el =>
+    el.addEventListener('input', e => { items[+e.target.dataset.desc].descripcion = e.target.value; }));
+
+  document.getElementById('guardar').addEventListener('click', guardar);
+}
+
+function campo(k, etiqueta, tipo='text', ph=''){
+  return `<div>
+    <label for="${k}">${etiqueta}</label>
+    <input id="${k}" data-f="${k}" type="${tipo}" ${k==='dni'?'inputmode="numeric" maxlength="8" class="mono"':''}
+      placeholder="${ph}" value="${esc(form[k])}">
+  </div>`;
+}
+
+async function guardar(){
+  if (!form.nombres.trim()) return vistaFormulario('Escribe tus nombres y apellidos.');
+  if (!/^\d{8}$/.test(form.dni.trim())) return vistaFormulario('El DNI debe tener 8 dígitos.');
+  if (!form.hospedaje.trim()) return vistaFormulario('Indica en qué hospedaje te encuentras.');
+  if (totalPrendas() === 0) return vistaFormulario('Ingresa la cantidad de al menos una prenda.');
+
+  const btn = document.getElementById('guardar');
+  btn.disabled = true; btn.textContent = 'Guardando…';
+  try {
+    const { data: boleta, error: e1 } = await sb.from('boletas').insert({
+      fecha: form.fecha,
+      empresa: form.empresa.trim(),
+      nombres: form.nombres.trim().toUpperCase(),
+      dni: form.dni.trim(),
+      hospedaje: form.hospedaje.trim().toUpperCase(),
+      habitacion: form.habitacion.trim(),
+      observaciones: form.observaciones.trim() || null,
+      total_prendas: totalPrendas()
+    }).select().single();
+    if (e1) throw e1;
+
+    const det = items.map((it,i) => ({
+      boleta_id: boleta.id, tipo_ropa: TIPOS[i],
+      cantidad: parseInt(it.cantidad,10) || 0,
+      descripcion: it.descripcion.trim() || null, orden: i
+    })).filter(x => x.cantidad > 0);
+
+    const { error: e2 } = await sb.from('boleta_items').insert(det);
+    if (e2) throw e2;
+
+    emitida = { ...boleta, detalle: det };
+    vistaEmitida();
+    window.scrollTo({top:0});
+  } catch (err) {
+    vistaFormulario('No se pudo guardar la boleta: ' + (err.message || 'revisa tu conexión.'));
+  }
+}
+
+function vistaEmitida(){
+  const b = emitida;
+  app.innerHTML = `
+    <div class="no-print" style="border-left:4px solid var(--sello);background:#fff;padding:18px">
+      <h1 style="margin:0;font-size:24px">Boleta registrada</h1>
+      <p class="sub">Guarda o imprime este comprobante y entrégalo junto con tu ropa en recepción.</p>
+      <div class="acciones">
+        <button class="btn" id="imprimir">Imprimir boleta</button>
+        <button class="btn2" id="otra">Registrar otra</button>
+        <a class="btn2" href="#/">Volver al inicio</a>
+      </div>
+    </div>
+    <article class="marco hoja" style="margin-top:24px">
+      <div class="hoja-cab">
+        <p class="numero mono">Nº ${corr(b.numero)}</p>
+        <h2>BOLETA DE LAVANDERÍA</h2>
+      </div>
+      <dl class="datos">
+        ${dato('Fecha', fecha(b.fecha))}${dato('Empresa', b.empresa)}
+        ${dato('Nombres', b.nombres)}${dato('DNI', b.dni)}
+        ${dato('Hospedaje', b.hospedaje)}${dato('Nº habitación', b.habitacion || '—')}
+      </dl>
+      <table>
+        <thead><tr><th>Tipo de ropa</th><th class="num">Cant.</th><th>Descripción</th></tr></thead>
+        <tbody>
+          ${b.detalle.map(i => `<tr><td><strong>${i.tipo_ropa}</strong></td>
+            <td class="num mono">${i.cantidad}</td><td>${esc(i.descripcion || '')}</td></tr>`).join('')}
+          <tr class="total"><td style="text-align:right">TOTAL PRENDAS:</td>
+            <td class="num mono">${b.total_prendas}</td>
+            <td style="font-weight:400;color:var(--texto)">Total kilos: lo completa lavandería</td></tr>
+        </tbody>
+      </table>
+      <div style="border:1px solid var(--linea);padding:12px;margin-top:16px;font-size:15px">
+        <strong>Observaciones:</strong> ${esc(b.observaciones || '—')}
+      </div>
+      <p style="text-align:center;font-size:13px;color:var(--texto);margin-top:20px">
+        Pendiente del visto bueno de lavandería al momento del recojo.</p>
+    </article>`;
+  document.getElementById('imprimir').addEventListener('click', () => window.print());
+  document.getElementById('otra').addEventListener('click', () => {
+    const h = form.hospedaje, hab = form.habitacion;
+    resetForm(); form.hospedaje = h; form.habitacion = hab;
+    emitida = null; vistaFormulario(); window.scrollTo({top:0});
+  });
+}
+const dato = (t,v) => `<div><dt>${t}</dt><dd>${esc(v)}</dd></div>`;
+
+/* ---------- Mis boletas ---------- */
+function vistaMisBoletas(lista, aviso, dni=''){
+  app.innerHTML = `
+    <header class="cab">
+      <a class="volver" href="#/">← Inicio</a>
+      <h1>Mis boletas</h1>
+      <p class="sub">Escribe tu DNI para ver el estado de tu ropa.</p>
+    </header>
+    <div style="display:flex;gap:12px;align-items:flex-end;margin-top:24px;flex-wrap:wrap">
+      <div><label for="bdni">DNI</label>
+        <input id="bdni" class="mono" inputmode="numeric" maxlength="8" style="width:170px" value="${esc(dni)}"></div>
+      <button class="btn" id="buscar">Buscar</button>
+    </div>
+    ${aviso ? `<p class="aviso" role="alert">${esc(aviso)}</p>` : ''}
+    ${lista ? (lista.length ? `<ul class="lista">${lista.map(tarjetaTrabajador).join('')}</ul>`
+      : `<div class="marco" style="margin-top:32px">
+           <strong>Todavía no hay boletas con ese DNI.</strong>
+           <p><a href="#/boleta"><strong>Registrar mi primera boleta</strong></a></p></div>`) : ''}`;
+
+  const input = document.getElementById('bdni');
+  input.addEventListener('input', e => e.target.value = e.target.value.replace(/\D/g,''));
+  const go = async () => {
+    const d = input.value.trim();
+    if (!/^\d{8}$/.test(d)) return vistaMisBoletas(null, 'El DNI debe tener 8 dígitos.', d);
+    const { data, error } = await sb.from('boletas').select('*').eq('dni', d).order('numero',{ascending:false});
+    if (error) return vistaMisBoletas(null, 'No se pudo consultar: ' + error.message, d);
+    vistaMisBoletas(data || [], null, d);
+  };
+  document.getElementById('buscar').addEventListener('click', go);
+  input.addEventListener('keydown', e => e.key === 'Enter' && go());
+}
+
+function tarjetaTrabajador(b){
+  const ok = b.estado === 'validada';
+  return `<li><div class="marco">
+    <div class="lin1">
+      <p class="numero mono" style="font-size:19px;margin:0">Nº ${corr(b.numero)}</p>
+      <span class="estado ${ok?'ok':''}">${ok?'Recogida por lavandería':'Esperando recojo'}</span>
+    </div>
+    <p style="color:var(--texto);font-size:15px">${fecha(b.fecha)} · ${esc(b.hospedaje)}${
+      b.habitacion?` — Hab. ${esc(b.habitacion)}`:''} · ${b.total_prendas} prendas${
+      b.total_kilos?` · ${b.total_kilos} kg`:''}</p>
+    ${b.obs_lavanderia?`<p style="color:var(--texto);font-size:15px">Nota de lavandería: ${esc(b.obs_lavanderia)}</p>`:''}
+  </div></li>`;
+}
+
+/* ---------- Lavandería ---------- */
+async function vistaLavanderia(){
+  if (!sesion) return vistaLogin();
+  if (!perfil) {
+    const { data } = await sb.from('perfiles').select('*').eq('id', sesion.user.id).single();
+    perfil = data || { nombre: sesion.user.email, rol: 'lavanderia' };
+  }
+  if (abierta) return vistaDetalle();
+  return vistaPanel();
+}
+
+function vistaLogin(aviso){
+  app.innerHTML = `
+    <a class="volver" href="#/">← Inicio</a>
+    <h1>Personal de lavandería</h1>
+    <p class="sub">Ingresa para revisar y dar el visto bueno a las boletas.</p>
+    <div class="marco" style="margin-top:28px;max-width:420px">
+      <div><label for="em">Correo</label><input id="em" type="email" autocomplete="username"></div>
+      <div style="margin-top:14px"><label for="pw">Contraseña</label>
+        <input id="pw" type="password" autocomplete="current-password"></div>
+      ${aviso?`<p class="aviso" role="alert">${esc(aviso)}</p>`:''}
+      <button class="btn" id="entrar" style="width:100%;margin-top:18px">Entrar</button>
+    </div>`;
+  const go = async () => {
+    const btn = document.getElementById('entrar');
+    btn.disabled = true; btn.textContent = 'Ingresando…';
+    const { error } = await sb.auth.signInWithPassword({
+      email: document.getElementById('em').value.trim(),
+      password: document.getElementById('pw').value
+    });
+    if (error) vistaLogin('Usuario o contraseña incorrectos.');
+  };
+  document.getElementById('entrar').addEventListener('click', go);
+  document.getElementById('pw').addEventListener('keydown', e => e.key === 'Enter' && go());
+}
+
+async function vistaPanel(){
+  app.innerHTML = `
+    <header class="barra">
+      <div><h1>Boletas por recoger</h1><p class="sub">${esc(perfil.nombre)}</p></div>
+      <button class="btn2" id="salir">Salir</button>
+    </header>
+    <div class="filtros">
+      ${[['enviada','Pendientes'],['validada','Validadas'],['todas','Todas']].map(([v,t]) =>
+        `<button data-fil="${v}" aria-pressed="${filtro===v}">${t}</button>`).join('')}
+    </div>
+    <p class="cargando" id="cargando">Cargando boletas…</p>`;
+
+  document.getElementById('salir').addEventListener('click', () => sb.auth.signOut());
+  app.querySelectorAll('[data-fil]').forEach(b =>
+    b.addEventListener('click', () => { filtro = b.dataset.fil; vistaPanel(); }));
+
+  let q = sb.from('boletas').select('*').order('numero',{ascending:false}).limit(200);
+  if (filtro !== 'todas') q = q.eq('estado', filtro);
+  const { data } = await q;
+  boletas = data || [];
+
+  const c = document.getElementById('cargando');
+  if (!boletas.length) {
+    c.outerHTML = `<p class="marco" style="margin-top:32px;color:var(--texto)">
+      No hay boletas en esta vista. Cuando el personal registre su ropa aparecerá aquí.</p>`;
+    return;
+  }
+  c.outerHTML = `<ul class="lista">${boletas.map(b => {
+    const ok = b.estado === 'validada';
+    return `<li><button class="tarjeta" data-id="${b.id}">
+      <div class="lin1">
+        <span class="numero mono" style="font-size:19px">Nº ${corr(b.numero)}</span>
+        <span class="estado ${ok?'ok':''}">${ok?'Validada':'Pendiente'}</span>
+      </div>
+      <p style="font-weight:600;margin:8px 0 0">${esc(b.nombres)}</p>
+      <p style="color:var(--texto);font-size:15px;margin:2px 0 0">${esc(b.hospedaje)}${
+        b.habitacion?` — Hab. ${esc(b.habitacion)}`:''} · ${fecha(b.fecha)} · ${b.total_prendas} prendas</p>
+    </button></li>`;
+  }).join('')}</ul>`;
+
+  app.querySelectorAll('[data-id]').forEach(el =>
+    el.addEventListener('click', () => {
+      abierta = boletas.find(x => x.id === el.dataset.id);
+      valida = { kilos: abierta.total_kilos ?? '', obs: abierta.obs_lavanderia ?? '' };
+      vistaDetalle(); window.scrollTo({top:0});
+    }));
+}
+
+async function vistaDetalle(aviso){
+  if (!detalle.length || detalle[0]?.boleta_id !== abierta.id) {
+    app.innerHTML = `<p class="cargando">Cargando boleta…</p>`;
+    const { data } = await sb.from('boleta_items').select('*').eq('boleta_id', abierta.id).order('orden');
+    detalle = (data || []).map(i => ({ ...i, contado: i.cantidad_confirmada ?? i.cantidad }));
+  }
+  const b = abierta, bloq = b.estado === 'validada';
+  const contado = detalle.reduce((s,i) => s + (parseInt(i.contado,10)||0), 0);
+  const dif = contado !== b.total_prendas;
+
+  app.innerHTML = `
+    <button class="volver" id="atras" style="background:none;border:none;color:var(--trama);padding:0">← Volver a la lista</button>
+    <div class="marco" style="margin-top:16px">
+      <div class="hoja-cab">
+        <p class="numero mono">Nº ${corr(b.numero)}</p>
+        <p style="color:var(--texto);font-size:15px;margin:0">${fecha(b.fecha)}</p>
+      </div>
+      <p style="font-size:18px;font-weight:700;margin:14px 0 0">${esc(b.nombres)}</p>
+      <p style="color:var(--texto);font-size:15px;margin:2px 0 0">DNI ${esc(b.dni)} · ${esc(b.empresa)}</p>
+      <p style="color:var(--texto);font-size:15px;margin:2px 0 0">${esc(b.hospedaje)}${
+        b.habitacion?` — Hab. ${esc(b.habitacion)}`:''}</p>
+      ${b.observaciones?`<p class="nota">Indicación del trabajador: ${esc(b.observaciones)}</p>`:''}
+    </div>
+
+    <div class="totales"><h2>Conteo de prendas</h2></div>
+    <table>
+      <thead><tr><th>Prenda</th><th class="num">Declarado</th><th class="num">Contado</th></tr></thead>
+      <tbody>
+        ${detalle.map(i => {
+          const d = (parseInt(i.contado,10)||0) !== i.cantidad;
+          return `<tr class="${d?'dif':''}">
+            <td>${i.tipo_ropa}${i.descripcion?`<span style="display:block;font-size:13px;color:var(--texto)">${esc(i.descripcion)}</span>`:''}</td>
+            <td class="num mono">${i.cantidad}</td>
+            <td class="num"><input type="number" min="0" class="mono" style="text-align:center"
+              data-cont="${i.id}" aria-label="Cantidad contada de ${i.tipo_ropa}"
+              value="${esc(i.contado)}" ${bloq?'disabled':''}></td></tr>`;
+        }).join('')}
+        <tr class="total"><td style="text-align:right">Totales</td>
+          <td class="num mono">${b.total_prendas}</td>
+          <td class="num mono" style="${dif?'color:var(--sello)':''}">${contado}</td></tr>
+      </tbody>
+    </table>
+    ${dif && !bloq ? `<p class="aviso">El conteo no coincide con lo declarado. Anota el motivo antes de dar el visto bueno.</p>`:''}
+
+    <div class="rejilla" style="grid-template-columns:170px 1fr">
+      <div><label for="kg">Total kilos</label>
+        <input id="kg" class="mono" type="number" step="0.01" min="0" value="${esc(valida.kilos)}" ${bloq?'disabled':''}></div>
+      <div><label for="obsl">Observaciones de lavandería</label>
+        <input id="obsl" value="${esc(valida.obs)}" ${bloq?'disabled':''}
+          placeholder="Prendas faltantes, manchas, detalles del recojo…"></div>
+    </div>
+    ${aviso?`<p class="aviso" role="alert">${esc(aviso)}</p>`:''}
+    <div class="acciones">
+      ${bloq ? `<p class="marco" style="font-size:15px"><strong>Visto bueno registrado</strong> por
+          ${esc(b.validado_por_nombre || 'lavandería')} el
+          ${new Date(b.validado_en).toLocaleString('es-PE')}. Esta boleta ya no se puede modificar.</p>`
+        : `<button class="btn" id="validar">Dar visto bueno</button>`}
+    </div>`;
+
+  document.getElementById('atras').addEventListener('click', () => {
+    abierta = null; detalle = []; vistaPanel(); window.scrollTo({top:0});
+  });
+  app.querySelectorAll('[data-cont]').forEach(el =>
+    el.addEventListener('input', e => {
+      const it = detalle.find(x => x.id === e.target.dataset.cont);
+      it.contado = e.target.value.replace(/\D/g,'');
+      guardarCampos(); vistaDetalle();
+      const n = app.querySelector(`[data-cont="${it.id}"]`); n.focus();
+    }));
+  document.getElementById('kg')?.addEventListener('input', e => valida.kilos = e.target.value);
+  document.getElementById('obsl')?.addEventListener('input', e => valida.obs = e.target.value);
+  document.getElementById('validar')?.addEventListener('click', validar);
+}
+
+function guardarCampos(){
+  valida.kilos = document.getElementById('kg')?.value ?? valida.kilos;
+  valida.obs = document.getElementById('obsl')?.value ?? valida.obs;
+}
+
+async function validar(){
+  guardarCampos();
+  const contado = detalle.reduce((s,i) => s + (parseInt(i.contado,10)||0), 0);
+  if (valida.kilos === '' || isNaN(parseFloat(valida.kilos)))
+    return vistaDetalle('Registra el total de kilos.');
+  if (contado !== abierta.total_prendas && !valida.obs.trim())
+    return vistaDetalle('Las cantidades no coinciden con lo declarado. Explica la diferencia en observaciones.');
+
+  const btn = document.getElementById('validar');
+  btn.disabled = true; btn.textContent = 'Registrando…';
+  try {
+    for (const i of detalle) {
+      const { error } = await sb.from('boleta_items')
+        .update({ cantidad_confirmada: parseInt(i.contado,10) || 0 }).eq('id', i.id);
+      if (error) throw error;
+    }
+    const { error } = await sb.from('boletas').update({
+      estado: 'validada',
+      total_kilos: parseFloat(valida.kilos),
+      obs_lavanderia: valida.obs.trim() || null,
+      validado_por: sesion.user.id,
+      validado_por_nombre: perfil.nombre,
+      validado_en: new Date().toISOString()
+    }).eq('id', abierta.id);
+    if (error) throw error;
+    abierta = null; detalle = [];
+    vistaPanel(); window.scrollTo({top:0});
+  } catch (err) {
+    vistaDetalle('No se pudo validar: ' + (err.message || 'intenta de nuevo.'));
+  }
+}
+</script>
+</body>
+</html>
