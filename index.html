@@ -205,17 +205,10 @@ const TIPOS = ['CAMISA MANGA CORTA','CAMISA MANGA LARGA','POLO MANGA CORTA','POL
   'MEDIAS','POLERAS','PANTALÓN BUZO','PIJAMA','OTROS'];
 
 const HOTELES = {
-  'Hotel Smith':               { empresa:'SMITHVC INVERSIONES S.R.L', ruc:'20608341383' },
-  'Hotel Smith 2':             { empresa:'SMITHVC INVERSIONES S.R.L', ruc:'20608341383' },
-  'Hotel Villaverde':          { empresa:'', ruc:'' },
-  'Hotel Perla del Pacífico':  { empresa:'', ruc:'' }
-};
-
-const HOSPEDAJES = {
-  'HOTEL SMITH':              { lav:'SMITHVC INVERSIONES S.R.L',   ruc:'20608341383' },
-  'HOTEL SMITH 2':            { lav:'SMITHVC INVERSIONES S.R.L',   ruc:'20608341383' },
-  'HOTEL VILLAVERDE':         { lav:'LUIS JAVIER JIMENEZ LOAYZA',  ruc:'10413443771' },
-  'HOTEL PERLA DEL PACIFICO': { lav:'LUIS JAVIER JIMENEZ LOAYZA',  ruc:'10413443771' }
+  'Hotel Smith':              { empresa:'SMITHVC INVERSIONES S.R.L',  ruc:'20608341383' },
+  'Hotel Smith 2':            { empresa:'SMITHVC INVERSIONES S.R.L',  ruc:'20608341383' },
+  'Hotel Villaverde':         { empresa:'LUIS JAVIER JIMENEZ LOAYZA', ruc:'10413443771' },
+  'Hotel Perla del Pacífico': { empresa:'LUIS JAVIER JIMENEZ LOAYZA', ruc:'10413443771' }
 };
 
 const app = document.getElementById('app');
@@ -339,8 +332,16 @@ function vistaFormulario(aviso){
         </select>
       </div>
       ${campo('habitacion','Nº habitación')}
-      ${campo('lav_empresa','Empresa de lavandería','text','Razón social')}
-      ${campo('lav_ruc','RUC de lavandería','text','11 dígitos')}
+      <div>
+        <label for="lav_empresa">Empresa de lavandería</label>
+        <input id="lav_empresa" readonly value="${esc(form.lav_empresa)}"
+               placeholder="Se completa según el hotel">
+      </div>
+      <div>
+        <label for="lav_ruc">RUC de lavandería</label>
+        <input id="lav_ruc" class="mono" readonly value="${esc(form.lav_ruc)}"
+               placeholder="Se completa según el hotel">
+      </div>
     </section>
     <section>
       <div class="totales">
@@ -382,7 +383,8 @@ function vistaFormulario(aviso){
   document.getElementById('hospedaje').addEventListener('change', e => {
     form.hospedaje = e.target.value;
     const h = HOTELES[form.hospedaje];
-    if (h && h.empresa) { form.lav_empresa = h.empresa; form.lav_ruc = h.ruc; }
+    form.lav_empresa = h ? h.empresa : '';
+    form.lav_ruc = h ? h.ruc : '';
     vistaFormulario();
     document.getElementById('hospedaje').focus();
   });
@@ -429,10 +431,8 @@ async function guardar(){
       dni: form.dni.trim(),
       hospedaje: form.hospedaje.trim().toUpperCase(),
       habitacion: form.habitacion.trim(),
-      lavanderia: form.lavanderia || null,
-      ruc: form.ruc || null,
-      lavanderia_empresa: form.lav_empresa.trim().toUpperCase() || null,
-      lavanderia_ruc: form.lav_ruc.trim() || null,
+      lavanderia: form.lav_empresa.trim().toUpperCase() || null,
+      ruc: form.lav_ruc.trim() || null,
       observaciones: form.observaciones.trim() || null,
       total_prendas: totalPrendas()
     }).select().single();
@@ -479,7 +479,7 @@ function vistaEmitida(){
         ${dato('Fecha', fecha(b.fecha))}${dato('Empresa', b.empresa)}
         ${dato('Nombres', b.nombres)}${dato('DNI', b.dni)}
         ${dato('Hospedaje', b.hospedaje)}${dato('Nº habitación', b.habitacion || '—')}
-        ${dato('Empresa de lavandería', b.lavanderia_empresa || '—')}${dato('RUC', b.lavanderia_ruc || '—')}
+        ${dato('Empresa de lavandería', b.lavanderia || '—')}${dato('RUC', b.ruc || '—')}
       </dl>
       <table>
         <thead><tr><th>Tipo de ropa</th><th class="num">Cant.</th><th>Descripción</th></tr></thead>
@@ -662,8 +662,6 @@ async function vistaDetalle(aviso){
       <p style="color:var(--texto);font-size:15px;margin:2px 0 0">${esc(b.hospedaje)}${
         b.habitacion?` — Hab. ${esc(b.habitacion)}`:''}</p>
       ${b.lavanderia?`<p style="color:var(--texto);font-size:15px;margin:2px 0 0">${esc(b.lavanderia)} · RUC ${esc(b.ruc||'')}</p>`:''}
-      ${b.lavanderia_empresa?`<p style="color:var(--texto);font-size:15px;margin:2px 0 0">${
-        esc(b.lavanderia_empresa)}${b.lavanderia_ruc?` · RUC ${esc(b.lavanderia_ruc)}`:''}</p>`:''}
       ${b.observaciones?`<p class="nota">Indicación del trabajador: ${esc(b.observaciones)}</p>`:''}
     </div>
 
