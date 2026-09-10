@@ -38,13 +38,15 @@
     color:#fff; padding:34px 0 92px; margin-bottom:-64px;
   }
   .hero-in{max-width:760px; margin:0 auto; padding:0 20px}
+  .marca-fila{display:flex; justify-content:flex-end; margin-bottom:26px}
   .marca{
-    display:inline-flex; align-items:center; gap:14px; background:#fff;
-    padding:10px 16px; border-radius:6px;
+    display:inline-flex; align-items:center; background:#fff;
+    padding:12px 18px; border-radius:6px;
   }
-  .marca img{height:38px; width:auto; display:block}
+  @media(max-width:520px){.marca-fila{justify-content:flex-start; margin-bottom:18px}}
+  .marca img{height:56px; width:auto; display:block}
   .chip{
-    display:inline-block; margin-top:20px; font-family:'IBM Plex Mono',monospace;
+    display:table; margin-top:0; font-family:'IBM Plex Mono',monospace;
     font-size:13px; letter-spacing:.04em; color:#fff;
     border:1px solid rgba(255,255,255,.45); padding:4px 12px; border-radius:999px;
   }
@@ -262,7 +264,9 @@ function vistaPortal(){
   app.innerHTML = `
     <section class="hero">
       <div class="hero-in">
-        <div class="marca"><img src="jjc.jpg" alt="JJC Ingeniería y Construcción"></div>
+        <div class="marca-fila">
+          <div class="marca"><img src="jjc.jpg" alt="JJC Ingeniería y Construcción"></div>
+        </div>
         <p class="chip">CC0174 · Marcobre — Mina Justa</p>
         <h1>Portal digital de boletas de lavandería</h1>
         <p>El mismo talonario de siempre, ahora en el celular. Cada boleta recibe su número
