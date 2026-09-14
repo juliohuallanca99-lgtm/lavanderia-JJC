@@ -201,7 +201,13 @@
   .ruta strong{display:block; color:inherit}
   .ruta small{color:#94A3B8}
 
-  #tramoya{position:absolute; left:-10000px; top:0; width:760px; background:#fff}
+  #tramoya{position:absolute; left:-10000px; top:0; width:720px; background:#fff}
+  #tramoya .hoja{width:720px; font-size:13px; padding:18px; border-width:2px}
+  #tramoya .hoja table{font-size:12.5px}
+  #tramoya .hoja th, #tramoya .hoja td{padding:4px 8px}
+  #tramoya .hoja .numero{font-size:20px}
+  #tramoya .hoja .datos dd{font-size:13px}
+  #tramoya .hoja .firmas{font-size:11px}
 
   @media print{
     .no-print{display:none !important}
@@ -499,10 +505,7 @@ function hojaHTML(b, det){
   return `
     <article class="marco hoja" style="background:#fff">
       <div class="hoja-cab">
-        <div>
-          <img class="logo-hoja" src="jjc.png" alt="JJC">
-          <p class="numero mono" style="margin-top:8px">Nº ${corr(b.numero)}</p>
-        </div>
+        <p class="numero mono">Nº ${corr(b.numero)}</p>
         ${anu ? `<span class="sello-anulada">ANULADA</span>` : `<h2>BOLETA DE LAVANDERÍA</h2>`}
       </div>
       <dl class="datos">
@@ -547,9 +550,11 @@ async function descargarPDF(b, det){
   const caja = document.getElementById('tramoya');
   caja.innerHTML = hojaHTML(b, det);
   await html2pdf().set({
-    margin: 10, filename: `Boleta_${corr(b.numero)}_${b.dni}.pdf`,
-    image: { type:'jpeg', quality:0.96 }, html2canvas: { scale:2, useCORS:true },
-    jsPDF: { unit:'mm', format:'a4', orientation:'portrait' }
+    margin: 8, filename: `Boleta_${corr(b.numero)}_${b.dni}.pdf`,
+    image: { type:'jpeg', quality:0.96 },
+    html2canvas: { scale:2, useCORS:true, windowWidth: 760, scrollX:0, scrollY:0 },
+    jsPDF: { unit:'mm', format:'a4', orientation:'portrait' },
+    pagebreak: { mode: ['css','legacy'] }
   }).from(caja.firstElementChild).save();
   caja.innerHTML = '';
 }
@@ -558,8 +563,10 @@ async function blobPDF(b, det){
   const caja = document.getElementById('tramoya');
   caja.innerHTML = hojaHTML(b, det);
   const blob = await html2pdf().set({
-    margin: 10, image:{type:'jpeg',quality:0.96},
-    html2canvas:{scale:2,useCORS:true}, jsPDF:{unit:'mm',format:'a4',orientation:'portrait'}
+    margin: 8, image:{type:'jpeg',quality:0.96},
+    html2canvas:{scale:2,useCORS:true,windowWidth:760,scrollX:0,scrollY:0},
+    jsPDF:{unit:'mm',format:'a4',orientation:'portrait'},
+    pagebreak:{mode:['css','legacy']}
   }).from(caja.firstElementChild).outputPdf('blob');
   caja.innerHTML = '';
   return blob;
@@ -806,9 +813,10 @@ async function descargarUnido(lista){
       `<div>${hojaHTML(b, (todos || []).filter(i => i.boleta_id === b.id))}</div>`).join('');
     const hojas = Array.from(caja.children);
 
-    const opc = { margin: 10, image:{type:'jpeg',quality:0.96},
-                  html2canvas:{scale:2,useCORS:true},
-                  jsPDF:{unit:'mm',format:'a4',orientation:'portrait'} };
+    const opc = { margin: 8, image:{type:'jpeg',quality:0.96},
+                  html2canvas:{scale:2,useCORS:true,windowWidth:760,scrollX:0,scrollY:0},
+                  jsPDF:{unit:'mm',format:'a4',orientation:'portrait'},
+                  pagebreak:{mode:['css','legacy']} };
 
     let worker = html2pdf().set(opc).from(hojas[0]).toPdf();
     for (let i = 1; i < hojas.length; i++) {
