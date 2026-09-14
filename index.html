@@ -201,7 +201,10 @@
   .ruta strong{display:block; color:inherit}
   .ruta small{color:#94A3B8}
 
-  #tramoya{position:absolute; left:-10000px; top:0; width:720px; background:#fff}
+  #tramoya{
+    position:fixed; left:0; top:0; width:720px; background:#fff;
+    opacity:0; pointer-events:none; z-index:-1; overflow:hidden;
+  }
   #tramoya .hoja{width:720px; font-size:13px; padding:18px; border-width:2px}
   #tramoya .hoja table{font-size:12.5px}
   #tramoya .hoja th, #tramoya .hoja td{padding:4px 8px}
@@ -552,7 +555,7 @@ async function descargarPDF(b, det){
   await html2pdf().set({
     margin: 8, filename: `Boleta_${corr(b.numero)}_${b.dni}.pdf`,
     image: { type:'jpeg', quality:0.96 },
-    html2canvas: { scale:2, useCORS:true, windowWidth: 760, scrollX:0, scrollY:0 },
+    html2canvas: { scale:2, useCORS:true },
     jsPDF: { unit:'mm', format:'a4', orientation:'portrait' },
     pagebreak: { mode: ['css','legacy'] }
   }).from(caja.firstElementChild).save();
@@ -564,7 +567,7 @@ async function blobPDF(b, det){
   caja.innerHTML = hojaHTML(b, det);
   const blob = await html2pdf().set({
     margin: 8, image:{type:'jpeg',quality:0.96},
-    html2canvas:{scale:2,useCORS:true,windowWidth:760,scrollX:0,scrollY:0},
+    html2canvas:{scale:2,useCORS:true},
     jsPDF:{unit:'mm',format:'a4',orientation:'portrait'},
     pagebreak:{mode:['css','legacy']}
   }).from(caja.firstElementChild).outputPdf('blob');
@@ -814,7 +817,7 @@ async function descargarUnido(lista){
     const hojas = Array.from(caja.children);
 
     const opc = { margin: 8, image:{type:'jpeg',quality:0.96},
-                  html2canvas:{scale:2,useCORS:true,windowWidth:760,scrollX:0,scrollY:0},
+                  html2canvas:{scale:2,useCORS:true},
                   jsPDF:{unit:'mm',format:'a4',orientation:'portrait'},
                   pagebreak:{mode:['css','legacy']} };
 
