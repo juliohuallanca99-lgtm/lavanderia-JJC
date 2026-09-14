@@ -6,14 +6,18 @@
 <title>Boletas de Lavandería — CC0174</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Serif:wght@600;700&display=swap" rel="stylesheet">
 <style>
   :root{
-    --tinta:#1B3A6B; --trama:#2E5FA3; --sello:#C8102E;
-    --papel:#F4F6F9; --linea:#C9D6E8; --texto:#334155;
-    --hondo:#00205B; --cian:#00A3E0; --verde:#00875A;
+    --tinta:#202040;        /* azul del logo */
+    --trama:#3D3D6B;        /* hover y enlaces */
+    --verde:#009C7E;        /* verde del chevron */
+    --verde-osc:#007D64;
+    --sello:#C8102E;
+    --papel:#F5F6F9; --linea:#D6D9E6; --texto:#4A4F5E;
+    --hondo:#202040; --ambar:#B45309;
   }
+  h1,h2,.numero{font-family:'IBM Plex Serif',Georgia,serif; letter-spacing:-.01em}
   *{box-sizing:border-box}
   body{
     margin:0; background:var(--papel); color:var(--tinta);
@@ -29,7 +33,8 @@
   a{color:var(--trama)}
   .mono{font-family:'IBM Plex Mono',ui-monospace,monospace}
   .cab{border-bottom:2px solid var(--tinta); padding-bottom:20px}
-  .logo{height:52px; width:auto; display:block; margin-bottom:14px}
+  .sub{color:var(--texto); max-width:62ch}
+  .volver{font-weight:600; text-decoration:none; font-size:15px}
 
   /* ---- Portada ---- */
   .hero{
@@ -40,12 +45,9 @@
   }
   .hero-in{max-width:760px; margin:0 auto; padding:0 20px}
   .marca-fila{display:flex; justify-content:flex-end; margin-bottom:26px}
-  .marca{
-    display:inline-flex; align-items:center; background:#fff;
-    padding:12px 18px; border-radius:6px;
-  }
-  @media(max-width:520px){.marca-fila{justify-content:flex-start; margin-bottom:18px}}
+  .marca{display:inline-flex; align-items:center; background:#fff; padding:12px 18px; border-radius:6px}
   .marca img{height:56px; width:auto; display:block}
+  @media(max-width:520px){.marca-fila{justify-content:flex-start; margin-bottom:18px}}
   .chip{
     display:table; margin-top:0; font-family:'IBM Plex Mono',monospace;
     font-size:13px; letter-spacing:.04em; color:#fff;
@@ -90,24 +92,18 @@
     .buscador input{width:100%; flex:none}
     .buscador button{width:100%; border-radius:8px}
   }
-  .logo-hoja{height:40px; width:auto}
-  .sub{color:var(--texto); max-width:62ch}
-  .volver{font-weight:600; text-decoration:none; font-size:15px}
 
   .marco{background:#fff; border:2px solid var(--tinta); padding:20px}
-  .accesos{display:grid; gap:18px; margin-top:36px}
-  @media(min-width:640px){.accesos{grid-template-columns:1fr 1fr}}
-  .acceso{display:block; text-decoration:none; color:inherit; transition:background .15s}
-  .acceso:hover{background:var(--papel)}
-  .acceso span{display:block; margin-top:14px; color:var(--trama); font-weight:600}
-
-  label{display:block; margin-bottom:4px; font-size:13px; font-weight:600; color:var(--tinta)}
+  label{
+    display:block; margin-bottom:5px; font-size:11.5px; font-weight:600;
+    text-transform:uppercase; letter-spacing:.08em; color:#6B7180;
+  }
   input,textarea,select{
     width:100%; background:#fff; border:1px solid var(--linea); padding:9px 11px;
     font-family:inherit; font-size:15px; color:var(--texto); border-radius:0;
   }
-  input:focus,textarea:focus{outline:none; border-color:var(--trama); box-shadow:0 0 0 3px rgba(46,95,163,.18)}
-  input:disabled{background:var(--papel)}
+  input:focus,textarea:focus,select:focus{outline:none; border-color:var(--trama); box-shadow:0 0 0 3px rgba(46,95,163,.18)}
+  input:read-only,input:disabled{background:var(--papel)}
   input[type=number]::-webkit-outer-spin-button,
   input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
   input[type=number]{-moz-appearance:textfield}
@@ -122,6 +118,8 @@
   }
   .btn:hover{background:var(--trama); border-color:var(--trama)}
   .btn:disabled{opacity:.5; cursor:default}
+  .btn.verde{background:var(--verde); border-color:var(--verde)}
+  .btn.verde:hover{background:var(--verde-osc); border-color:var(--verde-osc)}
   .btn2{
     display:inline-flex; align-items:center; justify-content:center;
     background:#fff; color:var(--tinta); border:2px solid var(--tinta);
@@ -156,27 +154,54 @@
   .numero{font-size:23px; font-weight:600; color:var(--sello); margin:0}
   .datos{display:grid; grid-template-columns:1fr 1fr; gap:2px 22px; margin:14px 0 0; padding:0}
   .datos div{border-bottom:1px solid var(--linea); padding:5px 0}
-  .datos dt{font-size:13px; font-weight:600; color:var(--tinta)}
+  .datos dt{font-size:11px; font-weight:600; text-transform:uppercase;
+    letter-spacing:.08em; color:#6B7180}
   .datos dd{margin:0; color:var(--texto)}
+  .logo-hoja{height:40px; width:auto}
+  .sello-anulada{
+    border:3px solid var(--sello); color:var(--sello); font-weight:700; font-size:15px;
+    letter-spacing:.12em; padding:5px 16px; transform:rotate(-6deg); display:inline-block;
+  }
+  .firmas{display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; margin-top:16px; font-size:12.5px}
+  .firmas div{border:1px solid var(--linea); padding:8px 10px}
+  .firmas dt{font-weight:600; text-transform:uppercase; letter-spacing:.07em;
+    font-size:10.5px; color:#6B7180}
+  .firmas dd{margin:2px 0 0; color:var(--texto)}
 
   .lista{list-style:none; padding:0; margin:24px 0 0}
   .lista li{margin-bottom:12px}
   .tarjeta{width:100%; text-align:left; background:#fff; border:2px solid var(--tinta); padding:16px; font:inherit; color:inherit; transition:background .15s}
   .tarjeta:hover{background:var(--papel)}
   .lin1{display:flex; flex-wrap:wrap; justify-content:space-between; align-items:baseline; gap:8px}
-  .estado{font-size:13px; font-weight:600; padding:4px 12px; border:1px solid var(--tinta)}
-  .estado.ok{background:var(--tinta); color:#fff}
-  .estado.nula{background:var(--sello); color:#fff; border-color:var(--sello)}
-  .sello-nula{
-    border:3px solid var(--sello); color:var(--sello); font-weight:700; letter-spacing:.12em;
-    padding:8px 20px; display:inline-block; transform:rotate(-6deg); font-size:19px;
-  }
+  .estado{font-size:13px; font-weight:600; padding:4px 12px; border:1px solid var(--tinta); white-space:nowrap}
+  .estado.paso1{background:#fff; color:var(--tinta)}
+  .estado.paso2{background:#FDF2E3; border-color:var(--ambar); color:var(--ambar)}
+  .estado.paso3{background:#E7EEF8; border-color:var(--trama); color:var(--trama)}
+  .estado.paso4{background:var(--verde); border-color:var(--verde); color:#fff}
+  .estado.nula{background:var(--sello); border-color:var(--sello); color:#fff}
+
   .filtros{display:flex; gap:8px; margin-top:20px; flex-wrap:wrap}
   .filtros button{background:#fff; border:1px solid var(--linea); color:var(--tinta); font-weight:600; font-size:15px; padding:9px 16px}
   .filtros button[aria-pressed=true]{background:var(--tinta); border-color:var(--tinta); color:#fff}
+  .fechas{display:flex; gap:12px; flex-wrap:wrap; align-items:flex-end; margin-top:16px}
+  .fechas > div{flex:1; min-width:150px}
   .barra{display:flex; flex-wrap:wrap; justify-content:space-between; align-items:flex-start; gap:12px; border-bottom:2px solid var(--tinta); padding-bottom:20px}
-
   .cargando{color:var(--texto); margin-top:32px}
+
+  /* ---- Línea de tiempo del trabajador ---- */
+  .ruta{list-style:none; padding:0; margin:14px 0 0}
+  .ruta li{display:flex; gap:12px; padding:6px 0; font-size:14.5px; color:#94A3B8}
+  .ruta li.hecho{color:var(--texto)}
+  .ruta .bolita{
+    width:20px; height:20px; border-radius:50%; border:2px solid var(--linea);
+    flex:none; margin-top:2px; display:flex; align-items:center; justify-content:center;
+    font-size:12px; color:#fff; background:#fff;
+  }
+  .ruta li.hecho .bolita{background:var(--verde); border-color:var(--verde)}
+  .ruta strong{display:block; color:inherit}
+  .ruta small{color:#94A3B8}
+
+  #tramoya{position:absolute; left:-10000px; top:0; width:760px; background:#fff}
 
   @media print{
     .no-print{display:none !important}
@@ -187,14 +212,6 @@
     .logo-hoja{height:36px}
   }
   @media (prefers-reduced-motion: reduce){*{transition:none !important}}
-  .sello-anulada{
-    border:3px solid var(--sello); color:var(--sello); font-weight:700; font-size:15px;
-    letter-spacing:.12em; padding:5px 16px; transform:rotate(-6deg); display:inline-block;
-  }
-  .estado.nula{background:var(--sello); border-color:var(--sello); color:#fff}
-  .fechas{display:flex; gap:12px; flex-wrap:wrap; align-items:flex-end; margin-top:16px}
-  .fechas > div{flex:1; min-width:150px}
-  #tramoya{position:absolute; left:-10000px; top:0; width:760px; background:#fff}
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
@@ -211,10 +228,10 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
    Supabase → Project Settings → API
    ========================================================== */
 const SUPABASE_URL = 'https://ecntfuprquxyhtkbywty.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVjbnRmdXBycXV4eWh0a2J5d3R5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODkwMDc3ODksImV4cCI6MjEwNDU4Mzc4OX0.Ykido1Fod1IfAatanCrihQFzdoIXVW_mZCIy63jwWbs';
+const SUPABASE_ANON_KEY = 'TU-ANON-KEY';
 /* ========================================================== */
 
-const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVjbnRmdXBycXV4eWh0a2J5d3R5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODkwMDc3ODksImV4cCI6MjEwNDU4Mzc4OX0.Ykido1Fod1IfAatanCrihQFzdoIXVW_mZCIy63jwWbs';
 
 const TIPOS = ['CAMISA MANGA CORTA','CAMISA MANGA LARGA','POLO MANGA CORTA','POLO MANGA LARGA',
   'CHOMPA DE LANA','PANTALÓN JEANS','PANTALÓN DRILL','OVEROL SIMPLE','OVEROL TÉRMICO',
@@ -228,14 +245,26 @@ const HOTELES = {
   'Hotel Perla del Pacífico': { empresa:'LUIS JAVIER JIMENEZ LOAYZA', ruc:'10413443771' }
 };
 
+// Cadena de aprobaciones
+const PASOS = [
+  { est:'registrada', corto:'Por verificar',   largo:'Registrada por el trabajador' },
+  { est:'verificada', corto:'Por recoger',     largo:'Verificada en recepción' },
+  { est:'recogida',   corto:'En lavandería',   largo:'Recogida por la lavandería' },
+  { est:'entregada',  corto:'Lista en hotel',  largo:'Devuelta limpia al hotel' }
+];
+const indicePaso = e => PASOS.findIndex(p => p.est === e);
+const claseEstado = e => e === 'anulada' ? 'nula' : 'paso' + (indicePaso(e) + 1);
+const textoEstado = e => e === 'anulada' ? 'Anulada' : (PASOS[indicePaso(e)]?.corto || e);
+
 const app = document.getElementById('app');
 const corr = n => String(n).padStart(5,'0');
 const fecha = iso => { if(!iso) return ''; const [a,m,d] = iso.slice(0,10).split('-'); return `${d}/${m}/${a}`; };
+const sello = iso => iso ? new Date(iso).toLocaleString('es-PE') : '';
 const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const hoy = () => new Date().toISOString().slice(0,10);
 
 let form = null, items = null, emitida = null, sesion = null, perfil = null,
-    filtro = 'enviada', boletas = [], abierta = null, detalle = [], valida = null,
+    filtro = '', boletas = [], abierta = null, detalle = [], valida = null,
     dniPrefill = '', desde = '', hasta = '';
 
 const resetForm = () => {
@@ -247,7 +276,7 @@ resetForm();
 
 /* ---------- Router ---------- */
 window.addEventListener('hashchange', render);
-sb.auth.onAuthStateChange((_e, s) => { sesion = s; perfil = null; render(); });
+sb.auth.onAuthStateChange((_e, s) => { sesion = s; perfil = null; filtro = ''; render(); });
 
 (async () => {
   const { data } = await sb.auth.getSession();
@@ -263,11 +292,18 @@ async function render(){
   app.className = '';
   if (r === '/boleta') return emitida ? vistaEmitida() : vistaFormulario();
   if (r === '/mis-boletas') { const d = dniPrefill; dniPrefill = ''; return vistaMisBoletas(null, null, d, !!d); }
-  if (r === '/lavanderia') return vistaLavanderia();
+  if (r === '/panel') return vistaPrivada();
   return vistaPortal();
 }
 
-/* ---------- Portal ---------- */
+/* ---------- Portada ---------- */
+const icoRopa = `<svg viewBox="0 0 24 24" fill="none" stroke="#1B3A6B" stroke-width="1.6"
+  stroke-linecap="round" stroke-linejoin="round"><path d="M9 3l3 2 3-2 5 3-2 4h-2v11H8V10H6L4 6z"/></svg>`;
+const icoEscudo = `<svg viewBox="0 0 24 24" fill="none" stroke="#00875A" stroke-width="1.6"
+  stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l8 3v6c0 5-3.5 9-8 11-4.5-2-8-6-8-11V5z"/><path d="M9 12l2 2 4-4"/></svg>`;
+const icoLupa = `<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#64748B"
+  stroke-width="1.8" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>`;
+
 function vistaPortal(){
   emitida = null;
   app.className = 'ancho';
@@ -275,12 +311,12 @@ function vistaPortal(){
     <section class="hero">
       <div class="hero-in">
         <div class="marca-fila">
-          <div class="marca"><img src="jjc.jpg" alt="JJC Ingeniería y Construcción"></div>
+          <div class="marca"><img src="jjc.png" alt="JJC Ingeniería y Construcción"></div>
         </div>
         <p class="chip">CC0174 · Marcobre — Mina Justa</p>
         <h1>Portal digital de boletas de lavandería</h1>
         <p>El mismo talonario de siempre, ahora en el celular. Cada boleta recibe su número
-        apenas se registra, y queda cerrada cuando lavandería la recoge del hotel.</p>
+        apenas se registra y avanza con el visto bueno de recepción y de la lavandería.</p>
       </div>
     </section>
 
@@ -293,11 +329,11 @@ function vistaPortal(){
           el número para imprimir o mostrar en recepción.</p>
           <span class="cta azul">Llenar boleta</span>
         </a>
-        <a class="tj" href="#/lavanderia">
+        <a class="tj" href="#/panel">
           ${icoEscudo}
-          <h2>Personal de lavandería</h2>
-          <p>Ingresa con tu usuario para revisar las boletas pendientes por hotel, contar
-          las prendas, anotar los kilos y dar el visto bueno.</p>
+          <h2>Recepción y lavandería</h2>
+          <p>Ingresa con tu usuario para dar el visto bueno que te corresponde:
+          verificación en el hotel, recojo y devolución de la ropa limpia.</p>
           <span class="cta verde">Iniciar sesión</span>
         </a>
       </div>
@@ -318,15 +354,18 @@ function vistaPortal(){
   inp.addEventListener('keydown', e => e.key === 'Enter' && go());
 }
 
-const icoRopa = `<svg viewBox="0 0 24 24" fill="none" stroke="#1B3A6B" stroke-width="1.6"
-  stroke-linecap="round" stroke-linejoin="round"><path d="M9 3l3 2 3-2 5 3-2 4h-2v11H8V10H6L4 6z"/></svg>`;
-const icoEscudo = `<svg viewBox="0 0 24 24" fill="none" stroke="#00875A" stroke-width="1.6"
-  stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l8 3v6c0 5-3.5 9-8 11-4.5-2-8-6-8-11V5z"/><path d="M9 12l2 2 4-4"/></svg>`;
-const icoLupa = `<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#64748B"
-  stroke-width="1.8" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>`;
-
 /* ---------- Formulario ---------- */
 function totalPrendas(){ return items.reduce((s,i) => s + (parseInt(i.cantidad,10)||0), 0); }
+
+function campo(k, etiqueta, tipo='text', ph='', ro=false){
+  return `<div>
+    <label for="${k}">${etiqueta}</label>
+    <input id="${k}" data-f="${k}" type="${tipo}" ${ro?'readonly':''}
+      ${k==='dni'?'inputmode="numeric" maxlength="8" class="mono"':''}
+      ${k==='lav_ruc'?'class="mono"':''}
+      placeholder="${ph}" value="${esc(form[k])}">
+  </div>`;
+}
 
 function vistaFormulario(aviso){
   app.innerHTML = `
@@ -349,16 +388,8 @@ function vistaFormulario(aviso){
         </select>
       </div>
       ${campo('habitacion','Nº habitación')}
-      <div>
-        <label for="lav_empresa">Empresa de lavandería</label>
-        <input id="lav_empresa" readonly value="${esc(form.lav_empresa)}"
-               placeholder="Se completa según el hotel">
-      </div>
-      <div>
-        <label for="lav_ruc">RUC de lavandería</label>
-        <input id="lav_ruc" class="mono" readonly value="${esc(form.lav_ruc)}"
-               placeholder="Se completa según el hotel">
-      </div>
+      ${campo('lav_empresa','Empresa de lavandería','text','Se completa según el hotel', true)}
+      ${campo('lav_ruc','RUC','text','Se completa según el hotel', true)}
     </section>
     <section>
       <div class="totales">
@@ -392,18 +423,15 @@ function vistaFormulario(aviso){
     </div>`;
 
   app.querySelectorAll('[data-f]').forEach(el =>
-    el.addEventListener('input', e => {
-      const k = e.target.dataset.f;
-      form[k] = (k === 'lav_ruc') ? e.target.value.replace(/\D/g,'') : e.target.value;
-    }));
+    el.addEventListener('input', e => { form[e.target.dataset.f] = e.target.value; }));
 
   document.getElementById('hospedaje').addEventListener('change', e => {
     form.hospedaje = e.target.value;
     const h = HOTELES[form.hospedaje];
     form.lav_empresa = h ? h.empresa : '';
     form.lav_ruc = h ? h.ruc : '';
-    vistaFormulario();
-    document.getElementById('hospedaje').focus();
+    document.getElementById('lav_empresa').value = form.lav_empresa;
+    document.getElementById('lav_ruc').value = form.lav_ruc;
   });
 
   app.querySelectorAll('[data-cant]').forEach(el =>
@@ -423,19 +451,10 @@ function vistaFormulario(aviso){
   document.getElementById('guardar').addEventListener('click', guardar);
 }
 
-function campo(k, etiqueta, tipo='text', ph=''){
-  return `<div>
-    <label for="${k}">${etiqueta}</label>
-    <input id="${k}" data-f="${k}" type="${tipo}" ${k==='dni'?'inputmode="numeric" maxlength="8" class="mono"':''}
-      placeholder="${ph}" value="${esc(form[k])}">
-  </div>`;
-}
-
 async function guardar(){
   if (!form.nombres.trim()) return vistaFormulario('Escribe tus nombres y apellidos.');
   if (!/^\d{8}$/.test(form.dni.trim())) return vistaFormulario('El DNI debe tener 8 dígitos.');
   if (!form.hospedaje.trim()) return vistaFormulario('Selecciona tu hospedaje.');
-  if (form.lav_ruc && !/^\d{11}$/.test(form.lav_ruc)) return vistaFormulario('El RUC debe tener 11 dígitos.');
   if (totalPrendas() === 0) return vistaFormulario('Ingresa la cantidad de al menos una prenda.');
 
   const btn = document.getElementById('guardar');
@@ -448,8 +467,8 @@ async function guardar(){
       dni: form.dni.trim(),
       hospedaje: form.hospedaje.trim().toUpperCase(),
       habitacion: form.habitacion.trim(),
-      lavanderia: form.lav_empresa.trim().toUpperCase() || null,
-      ruc: form.lav_ruc.trim() || null,
+      lavanderia: form.lav_empresa || null,
+      ruc: form.lav_ruc || null,
       observaciones: form.observaciones.trim() || null,
       total_prendas: totalPrendas()
     }).select().single();
@@ -472,13 +491,16 @@ async function guardar(){
   }
 }
 
+/* ---------- Hoja imprimible / PDF ---------- */
+const dato = (t,v) => `<div><dt>${t}</dt><dd>${esc(v)}</dd></div>`;
+
 function hojaHTML(b, det){
   const anu = b.estado === 'anulada';
   return `
     <article class="marco hoja" style="background:#fff">
       <div class="hoja-cab">
         <div>
-          <img class="logo-hoja" src="jjc.jpg" alt="JJC">
+          <img class="logo-hoja" src="jjc.png" alt="JJC">
           <p class="numero mono" style="margin-top:8px">Nº ${corr(b.numero)}</p>
         </div>
         ${anu ? `<span class="sello-anulada">ANULADA</span>` : `<h2>BOLETA DE LAVANDERÍA</h2>`}
@@ -505,28 +527,30 @@ function hojaHTML(b, det){
       </div>
       ${b.obs_lavanderia ? `<div style="border:1px solid var(--linea);padding:12px;margin-top:8px;font-size:15px">
         <strong>Nota de lavandería:</strong> ${esc(b.obs_lavanderia)}</div>` : ''}
-      <p style="text-align:center;font-size:13px;color:var(--texto);margin-top:20px">
-        ${anu ? `Anulada por ${esc(b.anulada_por_nombre || 'administración')}${
-              b.anulada_en ? ' el ' + new Date(b.anulada_en).toLocaleString('es-PE') : ''}.${
-              b.motivo_anulacion ? ' Motivo: ' + esc(b.motivo_anulacion) : ''}`
-          : b.estado === 'validada'
-            ? `Visto bueno de ${esc(b.validado_por_nombre || 'lavandería')}${
-                b.validado_en ? ' el ' + new Date(b.validado_en).toLocaleString('es-PE') : ''}.`
-            : 'Pendiente del visto bueno de lavandería al momento del recojo.'}</p>
+      ${b.obs_entrega ? `<div style="border:1px solid var(--linea);padding:12px;margin-top:8px;font-size:15px">
+        <strong>Nota de entrega:</strong> ${esc(b.obs_entrega)}</div>` : ''}
+      <dl class="firmas">
+        <div><dt>Verificado en recepción</dt>
+          <dd>${b.verificada_por_nombre ? esc(b.verificada_por_nombre) + '<br>' + sello(b.verificada_en) : 'Pendiente'}</dd></div>
+        <div><dt>Recogido por lavandería</dt>
+          <dd>${b.validado_por_nombre ? esc(b.validado_por_nombre) + '<br>' + sello(b.validado_en) : 'Pendiente'}</dd></div>
+        <div><dt>Devuelto limpio al hotel</dt>
+          <dd>${b.entregada_por_nombre ? esc(b.entregada_por_nombre) + '<br>' + sello(b.entregada_en) : 'Pendiente'}</dd></div>
+      </dl>
+      ${anu ? `<p style="text-align:center;font-size:13px;color:var(--sello);margin-top:16px">
+        Anulada por ${esc(b.anulada_por_nombre || 'administración')}${b.anulada_en ? ' el ' + sello(b.anulada_en) : ''}.${
+        b.motivo_anulacion ? ' Motivo: ' + esc(b.motivo_anulacion) : ''}</p>` : ''}
     </article>`;
 }
 
 async function descargarPDF(b, det){
   const caja = document.getElementById('tramoya');
   caja.innerHTML = hojaHTML(b, det);
-  const opciones = {
-    margin: 10,
-    filename: `Boleta_${corr(b.numero)}_${b.dni}.pdf`,
-    image: { type: 'jpeg', quality: 0.96 },
-    html2canvas: { scale: 2, useCORS: true },
-    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-  };
-  await html2pdf().set(opciones).from(caja.firstElementChild).save();
+  await html2pdf().set({
+    margin: 10, filename: `Boleta_${corr(b.numero)}_${b.dni}.pdf`,
+    image: { type:'jpeg', quality:0.96 }, html2canvas: { scale:2, useCORS:true },
+    jsPDF: { unit:'mm', format:'a4', orientation:'portrait' }
+  }).from(caja.firstElementChild).save();
   caja.innerHTML = '';
 }
 
@@ -546,7 +570,8 @@ function vistaEmitida(){
   app.innerHTML = `
     <div class="no-print" style="border-left:4px solid var(--sello);background:#fff;padding:18px">
       <h1 style="margin:0;font-size:24px">Boleta registrada</h1>
-      <p class="sub">Guarda o imprime este comprobante y entrégalo junto con tu ropa en recepción.</p>
+      <p class="sub">Entrégala en recepción junto con tu ropa. La recepcionista dará el
+      visto bueno en el sistema.</p>
       <div class="acciones">
         <button class="btn" id="pdf">Descargar PDF</button>
         <button class="btn2" id="imprimir">Imprimir</button>
@@ -568,7 +593,6 @@ function vistaEmitida(){
     emitida = null; vistaFormulario(); window.scrollTo({top:0});
   });
 }
-const dato = (t,v) => `<div><dt>${t}</dt><dd>${esc(v)}</dd></div>`;
 
 /* ---------- Mis boletas ---------- */
 function vistaMisBoletas(lista, aviso, dni='', autobuscar=false){
@@ -576,7 +600,7 @@ function vistaMisBoletas(lista, aviso, dni='', autobuscar=false){
     <header class="cab">
       <a class="volver" href="#/">← Inicio</a>
       <h1>Mis boletas</h1>
-      <p class="sub">Escribe tu DNI para ver el estado de tu ropa.</p>
+      <p class="sub">Escribe tu DNI para ver en qué paso va tu ropa.</p>
     </header>
     <div style="display:flex;gap:12px;align-items:flex-end;margin-top:24px;flex-wrap:wrap">
       <div><label for="bdni">DNI</label>
@@ -604,39 +628,64 @@ function vistaMisBoletas(lista, aviso, dni='', autobuscar=false){
 }
 
 function tarjetaTrabajador(b){
-  const ok = b.estado === 'validada', nula = b.estado === 'anulada';
+  const i = indicePaso(b.estado);
+  const anu = b.estado === 'anulada';
+  const detalles = [
+    b.verificada_en ? sello(b.verificada_en) : '',
+    b.validado_en ? sello(b.validado_en) : '',
+    b.entregada_en ? sello(b.entregada_en) : ''
+  ];
   return `<li><div class="marco">
     <div class="lin1">
       <p class="numero mono" style="font-size:19px;margin:0">Nº ${corr(b.numero)}</p>
-      <span class="estado ${nula?'nula':ok?'ok':''}">${
-        nula?'Anulada':ok?'Recogida por lavandería':'Esperando recojo'}</span>
+      <span class="estado ${claseEstado(b.estado)}">${textoEstado(b.estado)}</span>
     </div>
-    <p style="color:var(--texto);font-size:15px">${fecha(b.fecha)} · ${esc(b.hospedaje)}${
+    <p style="color:var(--texto);font-size:15px;margin:6px 0 0">${fecha(b.fecha)} · ${esc(b.hospedaje)}${
       b.habitacion?` — Hab. ${esc(b.habitacion)}`:''} · ${b.total_prendas} prendas${
       b.total_kilos?` · ${b.total_kilos} kg`:''}</p>
-    ${nula?`<p style="color:var(--sello);font-size:15px">Anulada: ${esc(b.anulada_motivo||'sin motivo registrado')}</p>`:''}
-    ${b.obs_lavanderia?`<p style="color:var(--texto);font-size:15px">Nota de lavandería: ${esc(b.obs_lavanderia)}</p>`:''}
+    ${anu ? `<p class="aviso" style="margin-top:10px">Boleta anulada${
+        b.motivo_anulacion ? ': ' + esc(b.motivo_anulacion) : ''}.</p>`
+    : `<ul class="ruta">
+        ${PASOS.map((p, n) => `<li class="${n <= i ? 'hecho' : ''}">
+          <span class="bolita">${n <= i ? '✓' : ''}</span>
+          <span><strong>${p.largo}</strong>${
+            n > 0 && n <= i && detalles[n-1] ? `<small>${detalles[n-1]}</small>` : ''}</span>
+        </li>`).join('')}
+      </ul>`}
+    ${b.obs_lavanderia?`<p class="nota">Nota de lavandería: ${esc(b.obs_lavanderia)}</p>`:''}
   </div></li>`;
 }
 
-/* ---------- Lavandería ---------- */
-async function vistaLavanderia(){
+/* ---------- Acceso privado ---------- */
+async function vistaPrivada(){
   if (!sesion) return vistaLogin();
   if (!perfil) {
     const { data } = await sb.from('perfiles').select('*').eq('id', sesion.user.id).single();
-    perfil = data || { nombre: sesion.user.email, rol: 'lavanderia' };
+    perfil = data || { nombre: sesion.user.email, rol: 'recepcion' };
   }
+  if (!filtro) filtro = filtrosDeRol()[0][0];
   if (abierta) return vistaDetalle();
   return vistaPanel();
 }
 
-function vistaLogin(aviso){
+function filtrosDeRol(){
+  if (perfil.rol === 'recepcion') return [
+    ['registrada','Por verificar'], ['verificada','Verificadas'], ['todas','Todas']];
+  if (perfil.rol === 'lavanderia') return [
+    ['verificada','Por recoger'], ['recogida','En lavandería'], ['entregada','Entregadas'], ['todas','Todas']];
+  return [
+    ['registrada','Por verificar'], ['verificada','Por recoger'], ['recogida','En lavandería'],
+    ['entregada','Entregadas'], ['anulada','Anuladas'], ['todas','Todas']];
+}
+
+function vistaLogin(aviso, correo=''){
   app.innerHTML = `
     <a class="volver" href="#/">← Inicio</a>
-    <h1>Personal de lavandería</h1>
-    <p class="sub">Ingresa para revisar y dar el visto bueno a las boletas.</p>
+    <h1>Recepción y lavandería</h1>
+    <p class="sub">Ingresa para dar el visto bueno que te corresponde.</p>
     <div class="marco" style="margin-top:28px;max-width:420px">
-      <div><label for="em">Correo</label><input id="em" type="email" autocomplete="username"></div>
+      <div><label for="em">Correo</label>
+        <input id="em" type="email" autocomplete="username" value="${esc(correo)}"></div>
       <div style="margin-top:14px"><label for="pw">Contraseña</label>
         <input id="pw" type="password" autocomplete="current-password"></div>
       ${aviso?`<p class="aviso" role="alert">${esc(aviso)}</p>`:''}
@@ -644,26 +693,31 @@ function vistaLogin(aviso){
     </div>`;
   const go = async () => {
     const btn = document.getElementById('entrar');
+    const em = document.getElementById('em').value.trim();
     btn.disabled = true; btn.textContent = 'Ingresando…';
     const { error } = await sb.auth.signInWithPassword({
-      email: document.getElementById('em').value.trim(),
-      password: document.getElementById('pw').value
-    });
-    if (error) vistaLogin('Usuario o contraseña incorrectos.');
+      email: em, password: document.getElementById('pw').value });
+    if (error) vistaLogin('Usuario o contraseña incorrectos.', em);
   };
   document.getElementById('entrar').addEventListener('click', go);
   document.getElementById('pw').addEventListener('keydown', e => e.key === 'Enter' && go());
 }
 
+function ambito(){
+  if (perfil.rol === 'recepcion') return esc(perfil.hospedaje || 'sin hotel asignado');
+  if (perfil.rol === 'lavanderia') return 'RUC ' + esc(perfil.ruc || '—');
+  return 'todos los hoteles';
+}
+
 async function vistaPanel(){
   app.innerHTML = `
     <header class="barra">
-      <div><h1>Boletas por recoger</h1>
-      <p class="sub">${esc(perfil.nombre)}${perfil.ruc?` · RUC ${esc(perfil.ruc)}`:' · ve todos los hoteles'}</p></div>
+      <div><h1>${perfil.rol === 'recepcion' ? 'Boletas del hotel' : 'Boletas de lavandería'}</h1>
+      <p class="sub">${esc(perfil.nombre)} · ${ambito()}</p></div>
       <button class="btn2" id="salir">Salir</button>
     </header>
     <div class="filtros">
-      ${[['enviada','Pendientes'],['validada','Validadas'],['anulada','Anuladas'],['todas','Todas']].map(([v,t]) =>
+      ${filtrosDeRol().map(([v,t]) =>
         `<button data-fil="${v}" aria-pressed="${filtro===v}">${t}</button>`).join('')}
     </div>
     <div class="fechas">
@@ -678,7 +732,6 @@ async function vistaPanel(){
   document.getElementById('salir').addEventListener('click', () => sb.auth.signOut());
   app.querySelectorAll('[data-fil]').forEach(b =>
     b.addEventListener('click', () => { filtro = b.dataset.fil; vistaPanel(); }));
-
   document.getElementById('aplicar').addEventListener('click', () => {
     desde = document.getElementById('desde').value;
     hasta = document.getElementById('hasta').value;
@@ -688,49 +741,95 @@ async function vistaPanel(){
     desde = ''; hasta = ''; vistaPanel();
   });
 
-  let q = sb.from('boletas').select('*').order('numero',{ascending:false}).limit(200);
+  let q = sb.from('boletas').select('*').order('numero',{ascending:false}).limit(300);
   if (filtro !== 'todas') q = q.eq('estado', filtro);
-  if (perfil.ruc) q = q.eq('ruc', perfil.ruc);
+  if (perfil.rol === 'recepcion' && perfil.hospedaje) q = q.eq('hospedaje', perfil.hospedaje);
+  if (perfil.rol === 'lavanderia' && perfil.ruc) q = q.eq('ruc', perfil.ruc);
+  if (perfil.rol === 'lavanderia' && filtro === 'todas') q = q.neq('estado','registrada');
   if (desde) q = q.gte('fecha', desde);
   if (hasta) q = q.lte('fecha', hasta);
-  const { data } = await q;
+  const { data, error } = await q;
   boletas = data || [];
 
   const c = document.getElementById('cargando');
+  if (error) { c.outerHTML = `<p class="aviso">No se pudo consultar: ${esc(error.message)}</p>`; return; }
   if (!boletas.length) {
     c.outerHTML = `<p class="marco" style="margin-top:32px;color:var(--texto)">
-      No hay boletas en esta vista.${perfil.ruc?' Solo aparecen las de tus hoteles.':''}
-      Cuando el personal registre su ropa aparecerá aquí.</p>`;
+      No hay boletas en esta vista. ${perfil.rol === 'recepcion'
+        ? 'Aparecerán aquí en cuanto el personal del hotel registre su ropa.'
+        : 'Aparecerán en cuanto recepción dé el visto bueno.'}</p>`;
     return;
   }
-  const validadas = boletas.filter(x => x.estado === 'validada');
+
+  const cerradas = boletas.filter(x => x.estado === 'entregada');
   const zona = document.getElementById('zona-zip');
-  if (validadas.length && zona) {
-    zona.innerHTML = `<button class="btn" id="zip">Descargar ${validadas.length} validada${
-      validadas.length>1?'s':''} en ZIP</button>`;
-    document.getElementById('zip').addEventListener('click', () => descargarZIP(validadas));
+  if (cerradas.length && zona) {
+    zona.innerHTML = `
+      <button class="btn" id="unido">Descargar ${cerradas.length} en un solo PDF</button>
+      <button class="btn2" id="zip">Descargar en ZIP (archivos sueltos)</button>`;
+    document.getElementById('unido').addEventListener('click', () => descargarUnido(cerradas));
+    document.getElementById('zip').addEventListener('click', () => descargarZIP(cerradas));
   }
 
-  c.outerHTML = `<ul class="lista">${boletas.map(b => {
-    const cls = b.estado === 'validada' ? 'ok' : b.estado === 'anulada' ? 'nula' : '';
-    const txt = b.estado === 'validada' ? 'Validada' : b.estado === 'anulada' ? 'Anulada' : 'Pendiente';
-    return `<li><button class="tarjeta" data-id="${b.id}">
+  c.outerHTML = `<ul class="lista">${boletas.map(b => `
+    <li><button class="tarjeta" data-id="${b.id}">
       <div class="lin1">
         <span class="numero mono" style="font-size:19px">Nº ${corr(b.numero)}</span>
-        <span class="estado ${cls}">${txt}</span>
+        <span class="estado ${claseEstado(b.estado)}">${textoEstado(b.estado)}</span>
       </div>
       <p style="font-weight:600;margin:8px 0 0">${esc(b.nombres)}</p>
       <p style="color:var(--texto);font-size:15px;margin:2px 0 0">${esc(b.hospedaje)}${
         b.habitacion?` — Hab. ${esc(b.habitacion)}`:''} · ${fecha(b.fecha)} · ${b.total_prendas} prendas</p>
-    </button></li>`;
-  }).join('')}</ul>`;
+    </button></li>`).join('')}</ul>`;
 
   app.querySelectorAll('[data-id]').forEach(el =>
     el.addEventListener('click', () => {
       abierta = boletas.find(x => x.id === el.dataset.id);
-      valida = { kilos: abierta.total_kilos ?? '', obs: abierta.obs_lavanderia ?? '' };
+      valida = { kilos: abierta.total_kilos ?? '', obs: abierta.obs_lavanderia ?? '',
+                 entrega: abierta.obs_entrega ?? '' };
+      detalle = [];
       vistaDetalle(); window.scrollTo({top:0});
     }));
+}
+
+async function descargarUnido(lista){
+  const btn = document.getElementById('unido');
+  const rotulo = btn ? btn.textContent : '';
+  const caja = document.getElementById('tramoya');
+  try {
+    if (btn) { btn.disabled = true; btn.textContent = 'Preparando…'; }
+    const { data: todos } = await sb.from('boleta_items').select('*')
+      .in('boleta_id', lista.map(b => b.id)).order('orden');
+
+    // Todas las hojas quedan en el DOM: html2canvas necesita elementos visibles
+    caja.innerHTML = lista.map(b =>
+      `<div>${hojaHTML(b, (todos || []).filter(i => i.boleta_id === b.id))}</div>`).join('');
+    const hojas = Array.from(caja.children);
+
+    const opc = { margin: 10, image:{type:'jpeg',quality:0.96},
+                  html2canvas:{scale:2,useCORS:true},
+                  jsPDF:{unit:'mm',format:'a4',orientation:'portrait'} };
+
+    let worker = html2pdf().set(opc).from(hojas[0]).toPdf();
+    for (let i = 1; i < hojas.length; i++) {
+      const hoja = hojas[i], n = i + 1;
+      worker = worker
+        .get('pdf').then(pdf => {
+          if (btn) btn.textContent = `Armando página ${n} de ${hojas.length}…`;
+          pdf.addPage();
+        })
+        .from(hoja).toContainer().toCanvas().toPdf();
+    }
+
+    const tramo = (desde || hasta) ? `_${desde||'inicio'}_a_${hasta||'hoy'}` : '';
+    if (btn) btn.textContent = 'Guardando…';
+    await worker.save(`Boletas_entregadas${tramo}.pdf`);
+  } catch (err) {
+    alert('No se pudo generar el PDF: ' + (err.message || err));
+  } finally {
+    caja.innerHTML = '';
+    if (btn) { btn.disabled = false; btn.textContent = rotulo; }
+  }
 }
 
 async function descargarZIP(lista){
@@ -743,77 +842,155 @@ async function descargarZIP(lista){
   for (const b of lista) {
     n++;
     if (btn) btn.textContent = `Generando ${n} de ${lista.length}…`;
-    const det = (todos || []).filter(i => i.boleta_id === b.id);
-    zip.file(`Boleta_${corr(b.numero)}_${b.dni}.pdf`, await blobPDF(b, det));
+    zip.file(`Boleta_${corr(b.numero)}_${b.dni}.pdf`,
+             await blobPDF(b, (todos || []).filter(i => i.boleta_id === b.id)));
   }
   if (btn) btn.textContent = 'Comprimiendo…';
   const salida = await zip.generateAsync({ type: 'blob' });
   const url = URL.createObjectURL(salida);
   const a = document.createElement('a');
   const tramo = (desde || hasta) ? `_${desde||'inicio'}_a_${hasta||'hoy'}` : '';
-  a.href = url; a.download = `Boletas_validadas${tramo}.zip`;
+  a.href = url; a.download = `Boletas_entregadas${tramo}.zip`;
   a.click();
   URL.revokeObjectURL(url);
   if (btn) btn.textContent = rotulo;
 }
 
+/* ---------- Detalle y aprobaciones ---------- */
 async function vistaDetalle(aviso){
-  if (!detalle.length || detalle[0]?.boleta_id !== abierta.id) {
+  if (!detalle.length) {
     app.innerHTML = `<p class="cargando">Cargando boleta…</p>`;
     const { data } = await sb.from('boleta_items').select('*').eq('boleta_id', abierta.id).order('orden');
     detalle = (data || []).map(i => ({ ...i, contado: i.cantidad_confirmada ?? i.cantidad }));
   }
-  const b = abierta, bloq = b.estado !== 'enviada';
+  const b = abierta;
+  const rol = perfil.rol;
   const contado = detalle.reduce((s,i) => s + (parseInt(i.contado,10)||0), 0);
   const dif = contado !== b.total_prendas;
+
+  // ¿Qué puede hacer este usuario con esta boleta?
+  const puedeVerificar = (rol === 'recepcion' || rol === 'admin') && b.estado === 'registrada';
+  const puedeRecoger   = (rol === 'lavanderia' || rol === 'admin') && b.estado === 'verificada';
+  const puedeEntregar  = (rol === 'lavanderia' || rol === 'admin') && b.estado === 'recogida';
+  const cuenta = puedeRecoger;   // solo lavandería cuenta y pesa
 
   app.innerHTML = `
     <button class="volver" id="atras" style="background:none;border:none;color:var(--trama);padding:0">← Volver a la lista</button>
     <div class="marco" style="margin-top:16px">
       <div class="hoja-cab">
         <p class="numero mono">Nº ${corr(b.numero)}</p>
-        <p style="color:var(--texto);font-size:15px;margin:0">${fecha(b.fecha)}</p>
+        <span class="estado ${claseEstado(b.estado)}">${textoEstado(b.estado)}</span>
       </div>
       <p style="font-size:18px;font-weight:700;margin:14px 0 0">${esc(b.nombres)}</p>
-      <p style="color:var(--texto);font-size:15px;margin:2px 0 0">DNI ${esc(b.dni)} · ${esc(b.empresa)}</p>
+      <p style="color:var(--texto);font-size:15px;margin:2px 0 0">DNI ${esc(b.dni)} · ${fecha(b.fecha)}</p>
       <p style="color:var(--texto);font-size:15px;margin:2px 0 0">${esc(b.hospedaje)}${
         b.habitacion?` — Hab. ${esc(b.habitacion)}`:''}</p>
-      ${b.lavanderia?`<p style="color:var(--texto);font-size:15px;margin:2px 0 0">${esc(b.lavanderia)} · RUC ${esc(b.ruc||'')}</p>`:''}
+      ${b.lavanderia?`<p style="color:var(--texto);font-size:15px;margin:2px 0 0">${
+        esc(b.lavanderia)} · RUC ${esc(b.ruc||'')}</p>`:''}
       ${b.observaciones?`<p class="nota">Indicación del trabajador: ${esc(b.observaciones)}</p>`:''}
+      <dl class="firmas">
+        <div><dt>Recepción</dt><dd>${b.verificada_por_nombre
+          ? esc(b.verificada_por_nombre) + '<br>' + sello(b.verificada_en) : 'Pendiente'}</dd></div>
+        <div><dt>Recojo</dt><dd>${b.validado_por_nombre
+          ? esc(b.validado_por_nombre) + '<br>' + sello(b.validado_en) : 'Pendiente'}</dd></div>
+        <div><dt>Entrega</dt><dd>${b.entregada_por_nombre
+          ? esc(b.entregada_por_nombre) + '<br>' + sello(b.entregada_en) : 'Pendiente'}</dd></div>
+      </dl>
     </div>
 
-    <div class="totales"><h2>Conteo de prendas</h2></div>
+    <div class="totales"><h2>${cuenta ? 'Conteo de prendas' : 'Prendas declaradas'}</h2></div>
     <table>
-      <thead><tr><th>Prenda</th><th class="num">Declarado</th><th class="num">Contado</th></tr></thead>
+      <thead><tr><th>Prenda</th><th class="num">Declarado</th>${
+        cuenta || b.estado === 'recogida' || b.estado === 'entregada'
+          ? '<th class="num">Contado</th>' : ''}</tr></thead>
       <tbody>
         ${detalle.map(i => {
           const d = (parseInt(i.contado,10)||0) !== i.cantidad;
-          return `<tr class="${d?'dif':''}">
+          return `<tr class="${cuenta && d ? 'dif' : ''}">
             <td>${i.tipo_ropa}${i.descripcion?`<span style="display:block;font-size:13px;color:var(--texto)">${esc(i.descripcion)}</span>`:''}</td>
             <td class="num mono">${i.cantidad}</td>
-            <td class="num"><input type="number" min="0" class="mono" style="text-align:center"
-              data-cont="${i.id}" aria-label="Cantidad contada de ${i.tipo_ropa}"
-              value="${esc(i.contado)}" ${bloq?'disabled':''}></td></tr>`;
+            ${cuenta
+              ? `<td class="num"><input type="number" min="0" class="mono" style="text-align:center"
+                   data-cont="${i.id}" aria-label="Cantidad contada de ${i.tipo_ropa}"
+                   value="${esc(i.contado)}"></td>`
+              : (b.estado === 'recogida' || b.estado === 'entregada'
+                  ? `<td class="num mono">${i.cantidad_confirmada ?? '—'}</td>` : '')}
+          </tr>`;
         }).join('')}
         <tr class="total"><td style="text-align:right">Totales</td>
           <td class="num mono">${b.total_prendas}</td>
-          <td class="num mono" style="${dif?'color:var(--sello)':''}">${contado}</td></tr>
+          ${cuenta ? `<td class="num mono" style="${dif?'color:var(--sello)':''}">${contado}</td>`
+            : (b.estado === 'recogida' || b.estado === 'entregada' ? `<td class="num mono"></td>` : '')}
+        </tr>
       </tbody>
     </table>
-    ${dif && !bloq ? `<p class="aviso">El conteo no coincide con lo declarado. Anota el motivo antes de dar el visto bueno.</p>`:''}
+    ${cuenta && dif ? `<p class="aviso">El conteo no coincide con lo declarado. Anota el motivo antes de confirmar el recojo.</p>`:''}
 
+    ${puedeRecoger ? `
     <div class="rejilla" style="grid-template-columns:170px 1fr">
       <div><label for="kg">Total kilos</label>
-        <input id="kg" class="mono" type="number" step="0.01" min="0" value="${esc(valida.kilos)}" ${bloq?'disabled':''}></div>
-      <div><label for="obsl">Observaciones de lavandería</label>
-        <input id="obsl" value="${esc(valida.obs)}" ${bloq?'disabled':''}
-          placeholder="Prendas faltantes, manchas, detalles del recojo…"></div>
-    </div>
-    ${perfil.rol === 'admin' ? `
+        <input id="kg" class="mono" type="number" step="0.01" min="0" value="${esc(valida.kilos)}"></div>
+      <div><label for="obsl">Observaciones del recojo</label>
+        <input id="obsl" value="${esc(valida.obs)}"
+          placeholder="Prendas faltantes, manchas, detalles…"></div>
+    </div>` : ''}
+
+    ${puedeEntregar ? `
+    <div style="margin-top:24px">
+      <label for="obse">Observaciones de la entrega</label>
+      <input id="obse" value="${esc(valida.entrega)}"
+        placeholder="Opcional: quién recibe en el hotel, detalles de la devolución…">
+    </div>` : ''}
+
+    ${b.total_kilos && !puedeRecoger ? `<p class="nota">Peso registrado: ${b.total_kilos} kg.${
+      b.obs_lavanderia ? ' Nota del recojo: ' + esc(b.obs_lavanderia) : ''}</p>` : ''}
+
+    ${perfil.rol === 'admin' ? bloqueAdmin(b) : ''}
+
+    ${aviso?`<p class="aviso" role="alert">${esc(aviso)}</p>`:''}
+    <div class="acciones">
+      ${puedeVerificar ? `<button class="btn" id="verificar">Dar visto bueno de recepción</button>` : ''}
+      ${puedeRecoger ? `<button class="btn" id="recoger">Confirmar recojo</button>` : ''}
+      ${puedeEntregar ? `<button class="btn verde" id="entregar">Confirmar entrega al hotel</button>` : ''}
+      ${b.estado !== 'registrada' ? `<button class="btn2" id="pdfDet">Descargar PDF</button>` : ''}
+    </div>`;
+
+  document.getElementById('atras').addEventListener('click', () => {
+    abierta = null; detalle = []; vistaPanel(); window.scrollTo({top:0});
+  });
+
+  app.querySelectorAll('[data-cont]').forEach(el =>
+    el.addEventListener('input', e => {
+      const it = detalle.find(x => x.id === e.target.dataset.cont);
+      it.contado = e.target.value.replace(/\D/g,'');
+      guardarCampos(); vistaDetalle();
+      const n = app.querySelector(`[data-cont="${it.id}"]`); n.focus();
+    }));
+
+  document.getElementById('kg')?.addEventListener('input', e => valida.kilos = e.target.value);
+  document.getElementById('obsl')?.addEventListener('input', e => valida.obs = e.target.value);
+  document.getElementById('obse')?.addEventListener('input', e => valida.entrega = e.target.value);
+
+  document.getElementById('verificar')?.addEventListener('click', verificar);
+  document.getElementById('recoger')?.addEventListener('click', recoger);
+  document.getElementById('entregar')?.addEventListener('click', entregar);
+
+  document.getElementById('pdfDet')?.addEventListener('click', async e => {
+    e.target.disabled = true; e.target.textContent = 'Generando…';
+    await descargarPDF(b, detalle);
+    e.target.disabled = false; e.target.textContent = 'Descargar PDF';
+  });
+
+  document.getElementById('guardarHotel')?.addEventListener('click', cambiarHotel);
+  document.getElementById('anular')?.addEventListener('click', anular);
+}
+
+function bloqueAdmin(b){
+  return `
     <div class="marco" style="margin-top:26px;border-color:var(--sello)">
       <h2 style="font-size:17px">Administración</h2>
       <p class="sub" style="font-size:15px">Corrige el hotel si se registró mal. La empresa de
-      lavandería y el RUC se actualizan solos, y la boleta pasa a la lista del proveedor correcto.</p>
+      lavandería y el RUC se actualizan solos.</p>
       <div class="rejilla" style="margin-top:14px">
         <div>
           <label for="adminHotel">Hotel asignado</label>
@@ -828,81 +1005,40 @@ async function vistaDetalle(aviso){
       </div>
       <div class="acciones">
         ${b.estado === 'anulada'
-          ? `<p class="sub" style="font-size:15px;margin:0">Boleta anulada por ${
-              esc(b.anulada_por_nombre || 'administración')}${
-              b.anulada_en ? ' el ' + new Date(b.anulada_en).toLocaleString('es-PE') : ''}.${
+          ? `<p class="sub" style="font-size:15px;margin:0">Anulada por ${
+              esc(b.anulada_por_nombre || 'administración')}${b.anulada_en ? ' el ' + sello(b.anulada_en) : ''}.${
               b.motivo_anulacion ? ' Motivo: ' + esc(b.motivo_anulacion) : ''}</p>`
           : `<button class="btn2" id="anular" style="border-color:var(--sello);color:var(--sello)">
               Anular esta boleta</button>`}
       </div>
-    </div>` : ''}
-
-    ${aviso?`<p class="aviso" role="alert">${esc(aviso)}</p>`:''}
-    <div class="acciones">
-      ${b.estado !== 'enviada' ? `<button class="btn" id="pdfDet">Descargar PDF</button>` : ''}
-      ${bloq ? `<p class="marco" style="font-size:15px"><strong>Visto bueno registrado</strong> por
-          ${esc(b.validado_por_nombre || 'lavandería')} el
-          ${new Date(b.validado_en).toLocaleString('es-PE')}. Esta boleta ya no se puede modificar.</p>`
-        : `<button class="btn" id="validar">Dar visto bueno</button>`}
     </div>`;
-
-  document.getElementById('atras').addEventListener('click', () => {
-    abierta = null; detalle = []; vistaPanel(); window.scrollTo({top:0});
-  });
-  app.querySelectorAll('[data-cont]').forEach(el =>
-    el.addEventListener('input', e => {
-      const it = detalle.find(x => x.id === e.target.dataset.cont);
-      it.contado = e.target.value.replace(/\D/g,'');
-      guardarCampos(); vistaDetalle();
-      const n = app.querySelector(`[data-cont="${it.id}"]`); n.focus();
-    }));
-  document.getElementById('kg')?.addEventListener('input', e => valida.kilos = e.target.value);
-  document.getElementById('obsl')?.addEventListener('input', e => valida.obs = e.target.value);
-  document.getElementById('validar')?.addEventListener('click', validar);
-
-  document.getElementById('guardarHotel')?.addEventListener('click', async () => {
-    const nuevo = document.getElementById('adminHotel').value;
-    const h = HOTELES[nuevo];
-    const btn = document.getElementById('guardarHotel');
-    btn.disabled = true; btn.textContent = 'Guardando…';
-    const { error } = await sb.from('boletas').update({
-      hospedaje: nuevo.toUpperCase(),
-      lavanderia: h.empresa,
-      ruc: h.ruc
-    }).eq('id', abierta.id);
-    if (error) return vistaDetalle('No se pudo cambiar el hotel: ' + error.message);
-    abierta = { ...abierta, hospedaje: nuevo.toUpperCase(), lavanderia: h.empresa, ruc: h.ruc };
-    vistaDetalle();
-  });
-
-  document.getElementById('anular')?.addEventListener('click', async () => {
-    const motivo = prompt(`Anular la boleta Nº ${corr(abierta.numero)} de ${abierta.nombres}.\n\nEl número queda visible con el sello ANULADA. Escribe el motivo:`);
-    if (motivo === null) return;
-    if (!motivo.trim()) return vistaDetalle('Indica el motivo de la anulación.');
-    const { error } = await sb.from('boletas').update({
-      estado: 'anulada',
-      motivo_anulacion: motivo.trim(),
-      anulada_por_nombre: perfil.nombre,
-      anulada_en: new Date().toISOString()
-    }).eq('id', abierta.id);
-    if (error) return vistaDetalle('No se pudo anular: ' + error.message);
-    abierta = null; detalle = [];
-    vistaPanel(); window.scrollTo({top:0});
-  });
-
-  document.getElementById('pdfDet')?.addEventListener('click', async e => {
-    e.target.disabled = true; e.target.textContent = 'Generando…';
-    await descargarPDF(abierta, detalle);
-    e.target.disabled = false; e.target.textContent = 'Descargar PDF';
-  });
 }
 
 function guardarCampos(){
   valida.kilos = document.getElementById('kg')?.value ?? valida.kilos;
   valida.obs = document.getElementById('obsl')?.value ?? valida.obs;
+  valida.entrega = document.getElementById('obse')?.value ?? valida.entrega;
 }
 
-async function validar(){
+async function aplicar(cambios, boton, rotulo){
+  const btn = document.getElementById(boton);
+  if (btn) { btn.disabled = true; btn.textContent = rotulo; }
+  const { error } = await sb.from('boletas').update(cambios).eq('id', abierta.id);
+  if (error) { vistaDetalle('No se pudo registrar: ' + error.message); return false; }
+  abierta = null; detalle = [];
+  vistaPanel(); window.scrollTo({top:0});
+  return true;
+}
+
+function verificar(){
+  return aplicar({
+    estado: 'verificada',
+    verificada_por_nombre: perfil.nombre,
+    verificada_en: new Date().toISOString()
+  }, 'verificar', 'Registrando…');
+}
+
+async function recoger(){
   guardarCampos();
   const contado = detalle.reduce((s,i) => s + (parseInt(i.contado,10)||0), 0);
   if (valida.kilos === '' || isNaN(parseFloat(valida.kilos)))
@@ -910,28 +1046,54 @@ async function validar(){
   if (contado !== abierta.total_prendas && !valida.obs.trim())
     return vistaDetalle('Las cantidades no coinciden con lo declarado. Explica la diferencia en observaciones.');
 
-  const btn = document.getElementById('validar');
-  btn.disabled = true; btn.textContent = 'Registrando…';
-  try {
-    for (const i of detalle) {
-      const { error } = await sb.from('boleta_items')
-        .update({ cantidad_confirmada: parseInt(i.contado,10) || 0 }).eq('id', i.id);
-      if (error) throw error;
-    }
-    const { error } = await sb.from('boletas').update({
-      estado: 'validada',
-      total_kilos: parseFloat(valida.kilos),
-      obs_lavanderia: valida.obs.trim() || null,
-      validado_por: sesion.user.id,
-      validado_por_nombre: perfil.nombre,
-      validado_en: new Date().toISOString()
-    }).eq('id', abierta.id);
-    if (error) throw error;
-    abierta = null; detalle = [];
-    vistaPanel(); window.scrollTo({top:0});
-  } catch (err) {
-    vistaDetalle('No se pudo validar: ' + (err.message || 'intenta de nuevo.'));
+  const btn = document.getElementById('recoger');
+  if (btn) { btn.disabled = true; btn.textContent = 'Registrando…'; }
+  for (const i of detalle) {
+    const { error } = await sb.from('boleta_items')
+      .update({ cantidad_confirmada: parseInt(i.contado,10) || 0 }).eq('id', i.id);
+    if (error) return vistaDetalle('No se pudo guardar el conteo: ' + error.message);
   }
+  return aplicar({
+    estado: 'recogida',
+    total_kilos: parseFloat(valida.kilos),
+    obs_lavanderia: valida.obs.trim() || null,
+    validado_por: sesion.user.id,
+    validado_por_nombre: perfil.nombre,
+    validado_en: new Date().toISOString()
+  }, 'recoger', 'Registrando…');
+}
+
+function entregar(){
+  guardarCampos();
+  return aplicar({
+    estado: 'entregada',
+    obs_entrega: valida.entrega.trim() || null,
+    entregada_por_nombre: perfil.nombre,
+    entregada_en: new Date().toISOString()
+  }, 'entregar', 'Registrando…');
+}
+
+async function cambiarHotel(){
+  const nuevo = document.getElementById('adminHotel').value;
+  const h = HOTELES[nuevo];
+  const { error } = await sb.from('boletas').update({
+    hospedaje: nuevo.toUpperCase(), lavanderia: h.empresa, ruc: h.ruc
+  }).eq('id', abierta.id);
+  if (error) return vistaDetalle('No se pudo cambiar el hotel: ' + error.message);
+  abierta = { ...abierta, hospedaje: nuevo.toUpperCase(), lavanderia: h.empresa, ruc: h.ruc };
+  vistaDetalle();
+}
+
+async function anular(){
+  const motivo = prompt(`Anular la boleta Nº ${corr(abierta.numero)} de ${abierta.nombres}.\n\nEl número queda visible con el sello ANULADA. Escribe el motivo:`);
+  if (motivo === null) return;
+  if (!motivo.trim()) return vistaDetalle('Indica el motivo de la anulación.');
+  return aplicar({
+    estado: 'anulada',
+    motivo_anulacion: motivo.trim(),
+    anulada_por_nombre: perfil.nombre,
+    anulada_en: new Date().toISOString()
+  }, 'anular', 'Anulando…');
 }
 </script>
 </body>
