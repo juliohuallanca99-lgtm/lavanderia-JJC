@@ -224,6 +224,7 @@
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
 <body>
 <main id="app"><p class="cargando">Cargando…</p></main>
@@ -773,12 +774,15 @@ async function vistaPanel(){
 
   const cerradas = boletas.filter(x => x.estado === 'entregada');
   const zona = document.getElementById('zona-zip');
-  if (cerradas.length && zona) {
+  if (zona) {
     zona.innerHTML = `
-      <button class="btn" id="unido">Descargar ${cerradas.length} en un solo PDF</button>
-      <button class="btn2" id="zip">Descargar en ZIP (archivos sueltos)</button>`;
-    document.getElementById('unido').addEventListener('click', () => descargarUnido(cerradas));
-    document.getElementById('zip').addEventListener('click', () => descargarZIP(cerradas));
+      ${cerradas.length ? `
+        <button class="btn" id="unido">Descargar ${cerradas.length} en un solo PDF</button>
+        <button class="btn2" id="zip">Descargar en ZIP</button>` : ''}
+      <button class="btn2" id="excel">Reporte en Excel (${boletas.length})</button>`;
+    document.getElementById('unido')?.addEventListener('click', () => descargarUnido(cerradas));
+    document.getElementById('zip')?.addEventListener('click', () => descargarZIP(cerradas));
+    document.getElementById('excel').addEventListener('click', () => exportarExcel(boletas));
   }
 
   c.outerHTML = `<ul class="lista">${boletas.map(b => `
@@ -800,6 +804,87 @@ async function vistaPanel(){
       detalle = [];
       vistaDetalle(); window.scrollTo({top:0});
     }));
+}
+
+async function exportarExcel(lista){
+  const btn = document.getElementById('excel');
+  const rotulo = btn ? btn.textContent : '';
+  try {
+    if (btn) { btn.disabled = true; btn.textContent = 'Armando reporte…'; }
+
+    const { data: todos } = await sb.from('boleta_items').select('*')
+      .in('boleta_id', lista.map(b => b.id)).order('orden');
+
+    const f = iso => iso ? new Date(iso).toLocaleString('es-PE') : '';
+
+    // Hoja 1 — una fila por boleta
+    const resumen = lista.map(b => {
+      const det = (todos || []).filter(i => i.boleta_id === b.id);
+      const contado = det.reduce((s,i) => s + (i.cantidad_confirmada ?? 0), 0);
+      return {
+        'Nº boleta': corr(b.numero),
+        'Fecha': fecha(b.fecha),
+        'Estado': b.estado === 'anulada' ? 'Anulada' : PASOS[indicePaso(b.estado)]?.largo || b.estado,
+        'Trabajador': b.nombres,
+        'DNI': b.dni,
+        'Empresa': b.empresa,
+        'Hospedaje': b.hospedaje,
+        'Habitación': b.habitacion || '',
+        'Empresa de lavandería': b.lavanderia || '',
+        'RUC': b.ruc || '',
+        'Prendas declaradas': b.total_prendas,
+        'Prendas contadas': contado || '',
+        'Diferencia': contado ? contado - b.total_prendas : '',
+        'Kilos': b.total_kilos ?? '',
+        'Verificado por': b.verificada_por_nombre || '',
+        'Verificado el': f(b.verificada_en),
+        'Recogido por': b.validado_por_nombre || '',
+        'Recogido el': f(b.validado_en),
+        'Entregado por': b.entregada_por_nombre || '',
+        'Entregado el': f(b.entregada_en),
+        'Obs. del trabajador': b.observaciones || '',
+        'Obs. del recojo': b.obs_lavanderia || '',
+        'Obs. de la entrega': b.obs_entrega || '',
+        'Anulada por': b.anulada_por_nombre || '',
+        'Motivo de anulación': b.motivo_anulacion || ''
+      };
+    });
+
+    // Hoja 2 — una fila por prenda
+    const porBoleta = Object.fromEntries(lista.map(b => [b.id, b]));
+    const prendas = (todos || []).map(i => {
+      const b = porBoleta[i.boleta_id] || {};
+      return {
+        'Nº boleta': corr(b.numero),
+        'Fecha': fecha(b.fecha),
+        'Trabajador': b.nombres,
+        'DNI': b.dni,
+        'Hospedaje': b.hospedaje,
+        'Prenda': i.tipo_ropa,
+        'Declarado': i.cantidad,
+        'Contado': i.cantidad_confirmada ?? '',
+        'Descripción': i.descripcion || ''
+      };
+    });
+
+    const libro = XLSX.utils.book_new();
+    const h1 = XLSX.utils.json_to_sheet(resumen);
+    const h2 = XLSX.utils.json_to_sheet(prendas);
+    h1['!cols'] = Object.keys(resumen[0] || {'':''}).map(k =>
+      ({ wch: Math.min(Math.max(k.length + 2, 12), 30) }));
+    h2['!cols'] = Object.keys(prendas[0] || {'':''}).map(k =>
+      ({ wch: Math.min(Math.max(k.length + 2, 12), 30) }));
+    h1['!freeze'] = { xSplit: 0, ySplit: 1 };
+    XLSX.utils.book_append_sheet(libro, h1, 'Boletas');
+    XLSX.utils.book_append_sheet(libro, h2, 'Detalle de prendas');
+
+    const tramo = (desde || hasta) ? `_${desde||'inicio'}_a_${hasta||'hoy'}` : `_${hoy()}`;
+    XLSX.writeFile(libro, `Reporte_boletas${tramo}.xlsx`);
+  } catch (err) {
+    alert('No se pudo generar el Excel: ' + (err.message || err));
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = rotulo; }
+  }
 }
 
 async function descargarUnido(lista){
