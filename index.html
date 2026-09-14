@@ -228,10 +228,10 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
    Supabase → Project Settings → API
    ========================================================== */
 const SUPABASE_URL = 'https://ecntfuprquxyhtkbywty.supabase.co';
-const SUPABASE_ANON_KEY = 'TU-ANON-KEY';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVjbnRmdXBycXV4eWh0a2J5d3R5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODkwMDc3ODksImV4cCI6MjEwNDU4Mzc4OX0.Ykido1Fod1IfAatanCrihQFzdoIXVW_mZCIy63jwWbs';
 /* ========================================================== */
 
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVjbnRmdXBycXV4eWh0a2J5d3R5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODkwMDc3ODksImV4cCI6MjEwNDU4Mzc4OX0.Ykido1Fod1IfAatanCrihQFzdoIXVW_mZCIy63jwWbs';
+const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 const TIPOS = ['CAMISA MANGA CORTA','CAMISA MANGA LARGA','POLO MANGA CORTA','POLO MANGA LARGA',
   'CHOMPA DE LANA','PANTALÓN JEANS','PANTALÓN DRILL','OVEROL SIMPLE','OVEROL TÉRMICO',
