@@ -88,31 +88,32 @@
   .cuerpo{width:min(1240px, calc(100% - 40px)); margin:-30px auto 0; position:relative; z-index:4; padding-bottom:70px}
   .tarjetas{display:grid; grid-template-columns:repeat(3,1fr); gap:22px; position:relative}
   .tj{
-    min-height:258px; overflow:hidden; position:relative;
-    background:#fff; border:1px solid #dfe5f1; border-radius:16px; padding:26px;
+    min-height:0; overflow:hidden; position:relative;
+    background:#fff; border:1px solid #dfe5f1; border-radius:16px; padding:22px 24px;
     box-shadow:0 14px 38px rgba(0,32,91,.12); text-decoration:none; color:inherit;
     display:flex; flex-direction:column; transition:transform .18s, box-shadow .18s;
   }
   .tj:hover{transform:translateY(-4px);box-shadow:0 18px 44px rgba(0,32,91,.17)}
   .tj::after{content:"";position:absolute;right:-35px;top:-35px;width:150px;height:150px;border-radius:50%;background:linear-gradient(135deg,rgba(53,224,189,.08),rgba(27,58,107,.03));}
   .tj::before{
-    content:""; position:absolute; right:0; bottom:0; width:62%; height:78%;
+    content:""; position:absolute; right:0; top:0; bottom:0; width:44%;
     background-image:var(--img); background-size:cover; background-position:center;
-    -webkit-mask-image:linear-gradient(to left, #000 28%, transparent 88%);
-    mask-image:linear-gradient(to left, #000 28%, transparent 88%);
-    opacity:.92; pointer-events:none; z-index:0;
+    -webkit-mask-image:linear-gradient(to left, #000 48%, transparent 97%);
+    mask-image:linear-gradient(to left, #000 48%, transparent 97%);
+    opacity:.6; pointer-events:none; z-index:0;
   }
   .tj[data-sin-img]::before{display:none}
-  .tj h2,.tj p{position:relative; z-index:1}
-  .tj p{max-width:24ch}
-  .tj h2{font-family:'IBM Plex Sans',system-ui,sans-serif;font-size:22px;line-height:1.2;margin:16px 0 8px;color:#10356e}
-  .tj p{color:var(--texto);font-size:15px;line-height:1.55;flex:1;max-width:31ch}
-  .tj .icon-circle{width:58px;height:58px;border-radius:50%;display:flex;align-items:center;justify-content:center;position:relative;z-index:1}
+  .tj h2,.tj p,.tj .icon-circle,.tj .cta{position:relative; z-index:2}
+  .tj h2{max-width:none; white-space:nowrap}
+  .tj p{max-width:19ch}
+  .tj h2{font-family:'IBM Plex Sans',system-ui,sans-serif;font-size:21px;line-height:1.2;margin:14px 0 7px;color:#10356e}
+  .tj p{color:var(--texto);font-size:14.5px;line-height:1.5;flex:1;margin:0}
+  .tj .icon-circle{width:54px;height:54px;border-radius:50%;display:flex;align-items:center;justify-content:center;position:relative;z-index:1}
   .tj .icon-circle svg{width:30px;height:30px}
   .tj:nth-child(1) .icon-circle{background:#d9edff}
   .tj:nth-child(2) .icon-circle{background:#d8f8ef}
   .tj:nth-child(3) .icon-circle{background:#e8e2ff}
-  .cta{display:inline-flex;align-items:center;justify-content:center;gap:10px;align-self:flex-start;color:#fff;font-weight:700;font-size:14px;padding:11px 20px;border-radius:999px;margin-top:15px;position:relative;z-index:1}
+  .cta{display:inline-flex;align-items:center;justify-content:center;gap:10px;align-self:flex-start;color:#fff;font-weight:700;font-size:14px;padding:11px 20px;border-radius:999px;margin-top:16px;position:relative;z-index:1}
   .cta::after{content:'›';font-size:21px;line-height:12px}
   .cta.azul{background:#063d91}.cta.verde{background:#009c7e}.cta.morado{background:#4333a5}
   .buscador{
@@ -128,18 +129,63 @@
   .seguimiento h2{font-family:'IBM Plex Sans',system-ui,sans-serif;color:#10356e;font-size:20px}
   .seguimiento p{color:#64748b;font-size:13px;margin:3px 0 0}
   .ruta-home{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;background:#fff;border-radius:14px;padding:20px 14px}
-  .paso-home{text-align:center;position:relative;color:#153a72;font-size:12px;font-weight:700}
-  .paso-home:not(:last-child)::after{content:'›';position:absolute;right:-4px;top:11px;font-size:22px;color:#2160a8}
+  .paso-home{text-align:center;position:relative;color:#153a72;font-size:12.5px;font-weight:700;padding-top:6px}
+  .paso-home:not(:last-child)::after{content:'›';position:absolute;right:-6px;top:26px;font-size:22px;color:#2160a8}
+  .paso-num{
+    position:absolute;left:50%;top:0;transform:translateX(-46px);
+    width:22px;height:22px;border-radius:50%;background:#1668c4;color:#fff;
+    font-size:11.5px;font-weight:700;display:flex;align-items:center;justify-content:center;z-index:2;
+  }
+  .paso-home:last-child .paso-num{background:#00875a}
+  .paso-desc{display:block;font-weight:400;color:#64748b;font-size:11px;line-height:1.35;margin-top:3px}
   .paso-icon{width:48px;height:48px;border-radius:50%;background:#e4f0ff;border:1px solid #c8ddf7;margin:0 auto 7px;display:flex;align-items:center;justify-content:center}
   .paso-icon svg{width:24px;height:24px}
   .paso-home:last-child .paso-icon{background:#d9f7ed;border-color:#a9e8d5}
+  /* --- Tablet horizontal --- */
+  @media(max-width:1100px){
+    .hero h1{font-size:48px}
+    .tj{padding:20px}
+    .tj h2{font-size:19px}
+    .tj p{max-width:17ch;font-size:14px}
+    .tj::before{width:38%;opacity:.45}
+  }
+  /* --- Tablet vertical --- */
   @media(max-width:900px){
     .top-info{gap:10px;font-size:12px}.top-info .portal{padding-left:10px}
-    .hero h1{font-size:48px}.tarjetas{grid-template-columns:1fr}.tj{min-height:220px}.ruta-home{grid-template-columns:repeat(3,1fr);row-gap:22px}
+    .hero{min-height:420px}
+    .hero h1{font-size:42px;max-width:12ch}
+    .hero-in{padding:38px 0 78px}
+    .tarjetas{grid-template-columns:repeat(2,1fr)}
+    .tarjetas .tj:last-child{grid-column:1 / -1;min-height:180px}
+    .tarjetas .tj:last-child p{max-width:40ch}
+    .tj h2{white-space:normal}
+    .tj p{max-width:26ch}
+    .tj::before{width:34%;opacity:.4}
+    .ruta-home{grid-template-columns:repeat(3,1fr);row-gap:24px}
+    .paso-home:nth-child(3)::after{display:none}
   }
   @media(max-width:620px){
     .topbar{min-height:70px}.topbar-in{width:calc(100% - 28px)}.brand-main img{height:40px}.brand-name{display:none}.top-info span:first-child{display:none}.top-info .portal{border:0;padding:0;font-size:12px}
     .hero{min-height:520px}.hero-in{width:calc(100% - 28px);padding:36px 0 92px}.hero h1{font-size:40px;max-width:11ch}.hero p.hero-desc{font-size:16px}.beneficios{display:grid;grid-template-columns:1fr 1fr}.beneficio{min-width:0;margin-right:0;padding-right:10px;border-right:0}.cuerpo{width:calc(100% - 28px);margin-top:-24px}.buscador{border-radius:16px;flex-wrap:wrap;padding:10px}.buscador input{width:100%;flex:none}.buscador button{width:100%;border-radius:10px}.ruta-home{grid-template-columns:repeat(2,1fr)}.seguimiento{padding:18px 12px}.seguimiento-head{align-items:flex-start}.seguimiento-head em{display:none}
+    .tarjetas{grid-template-columns:1fr;gap:16px}
+    .tarjetas .tj:last-child{grid-column:auto}
+    .tj{min-height:0;padding:20px}
+    .tj h2{font-size:20px;margin:12px 0 6px;white-space:normal}
+    .tj p{max-width:30ch;font-size:14.5px}
+    .tj::before{width:32%;opacity:.28}
+    .tj .icon-circle{width:50px;height:50px}
+    .paso-home:nth-child(2n)::after{display:none}
+    .paso-desc{font-size:10.5px}
+  }
+  /* --- Celular angosto --- */
+  @media(max-width:400px){
+    .hero h1{font-size:34px}
+    .hero p.hero-desc{font-size:15px}
+    .beneficios{grid-template-columns:1fr}
+    .tj::before{display:none}
+    .ruta-home{grid-template-columns:1fr;row-gap:18px;padding:16px 10px}
+    .paso-home::after{display:none !important}
+    .paso-num{transform:translateX(-42px)}
   }
 
   .marco{background:#fff; border:2px solid var(--tinta); padding:20px}
@@ -372,6 +418,8 @@ function vistaPortal(){
   const icoUser = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="3"/><path d="M5 20c.8-3.3 3.1-5 7-5s6.2 1.7 7 5"/><path d="M17 4v4M15 6h4"/></svg>`;
   const icoDoc = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h9l4 4v14H6z"/><path d="M14 3v5h5M9 13h6M9 17h6"/></svg>`;
   const icoBox = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m4 8 8-4 8 4-8 4-8-4Z"/><path d="M4 8v9l8 4 8-4V8M12 12v9"/></svg>`;
+  const icoAgua = `<svg viewBox="0 0 24 24" fill="none" stroke="#1668c4" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8c2.5-2 4.5 2 7 0s4.5-2 7 0 4 0 4 0"/><path d="M3 13c2.5-2 4.5 2 7 0s4.5-2 7 0 4 0 4 0"/><path d="M3 18c2.5-2 4.5 2 7 0s4.5-2 7 0 4 0 4 0"/></svg>`;
+  const icoPila = `<svg viewBox="0 0 24 24" fill="none" stroke="#1668c4" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="5" width="16" height="4" rx="1.5"/><rect x="4" y="11" width="16" height="4" rx="1.5"/><rect x="4" y="17" width="16" height="3" rx="1.5"/></svg>`;
   const icoCheck = `<svg viewBox="0 0 24 24" fill="none" stroke="#009c7e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="m8 12 2.5 2.5L16 9"/></svg>`;
   const icoShield = `<svg viewBox="0 0 24 24" fill="none" stroke="#28e0b6" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 20 6v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6l8-3Z"/><path d="m8.5 12 2.2 2.2 4.8-5"/></svg>`;
   const icoClock = `<svg viewBox="0 0 24 24" fill="none" stroke="#28e0b6" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>`;
@@ -443,12 +491,20 @@ function vistaPortal(){
           <em style="font-size:13px;color:#1b4a83;font-weight:700">De tu mano a tu ropa limpia ✓</em>
         </div>
         <div class="ruta-home">
-          <div class="paso-home"><div class="paso-icon">${icoDoc}</div>Registrada</div>
-          <div class="paso-home"><div class="paso-icon">${icoBox}</div>Recepcionada</div>
-          <div class="paso-home"><div class="paso-icon">${icoLav}</div>En lavandería</div>
-          <div class="paso-home"><div class="paso-icon">${icoLav}</div>Lavada</div>
-          <div class="paso-home"><div class="paso-icon">${icoBox}</div>Lista</div>
-          <div class="paso-home"><div class="paso-icon">${icoCheck}</div>Entregada</div>
+          ${[
+            [1, icoDoc,   'Registrada',    'Se ha creado tu boleta'],
+            [2, icoBox,   'Recepcionada',  'Verificada en recepción del hotel'],
+            [3, icoLav,   'En lavandería', 'Recogida y en proceso de lavado'],
+            [4, icoAgua,  'Lavada',        'Terminó el ciclo de lavado'],
+            [5, icoPila,  'Lista',         'Preparada para entregar'],
+            [6, icoCheck, 'Entregada',     '¡Gracias por tu paciencia!']
+          ].map(([n, ico, titulo, desc]) => `
+            <div class="paso-home">
+              <span class="paso-num">${n}</span>
+              <div class="paso-icon">${ico}</div>
+              ${titulo}
+              <span class="paso-desc">${desc}</span>
+            </div>`).join('')}
         </div>
       </section>
     </div>`;
