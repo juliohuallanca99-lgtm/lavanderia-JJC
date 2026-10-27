@@ -189,6 +189,19 @@
   }
 
   .marco{background:#fff; border:2px solid var(--tinta); padding:20px}
+  .ficha{
+    display:flex; align-items:center; gap:14px; margin-top:22px;
+    background:#fff; border:1px solid var(--linea); border-radius:12px; padding:14px 16px;
+  }
+  .ficha-ini{
+    width:42px; height:42px; border-radius:10px; flex:none; background:var(--tinta);
+    color:#fff; font-weight:700; display:flex; align-items:center; justify-content:center;
+  }
+  .ficha-cuerpo{flex:1; min-width:0}
+  .ficha-nombre{margin:0; font-weight:700; font-size:16px; color:var(--tinta)}
+  .ficha-dni{margin:2px 0 0; font-size:13px; color:#6B7180;
+    font-family:'IBM Plex Mono',monospace; letter-spacing:.04em}
+  .ficha-ok{color:var(--verde); font-weight:600; font-size:14px; white-space:nowrap}
   label{
     display:block; margin-bottom:5px; font-size:11.5px; font-weight:600;
     text-transform:uppercase; letter-spacing:.08em; color:#6B7180;
@@ -368,12 +381,14 @@ const sello = iso => iso ? new Date(iso).toLocaleString('es-PE') : '';
 const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const hoy = () => new Date().toISOString().slice(0,10);
 
+let temporizadorDni = null;
 let form = null, items = null, emitida = null, sesion = null, perfil = null,
     filtro = '', boletas = [], abierta = null, detalle = [], valida = null,
     dniPrefill = '', desde = '', hasta = '';
 
 const resetForm = () => {
   form = { fecha:hoy(), empresa:'JJC CONTRATISTAS GENERALES S.A.', nombres:'', dni:'',
+           cargo:'', frente:'', celular:'', verificado:false, buscando:false, buscado:'',
            hospedaje:'', habitacion:'', lav_empresa:'', lav_ruc:'', observaciones:'' };
   items = TIPOS.map(() => ({ cantidad:'', descripcion:'' }));
 };
@@ -517,6 +532,45 @@ function vistaPortal(){
 }
 
 /* ---------- Formulario ---------- */
+function fichaPadron(){
+  if (form.buscando) return `<p class="nota" style="margin-top:20px">Buscando tu DNI en el padrón de obra…</p>`;
+  if (form.verificado) return `
+    <div class="ficha">
+      <div class="ficha-ini">${esc((form.nombres.trim()[0] || '?').toUpperCase())}</div>
+      <div class="ficha-cuerpo">
+        <p class="ficha-nombre">${esc(form.nombres)}</p>
+        <p class="ficha-dni">DNI ${esc(form.dni)}</p>
+      </div>
+      <span class="ficha-ok">✓ Verificado</span>
+    </div>`;
+  if (form.buscado && form.buscado === form.dni) return `
+    <p class="aviso" style="margin-top:20px">No encontramos tu documento en el padrón de obra.
+    Puedes continuar escribiendo tus datos a mano: la boleta quedará marcada como
+    <strong>no verificada</strong> para que Administración la revise.</p>`;
+  return '';
+}
+
+async function buscarPadron(dni){
+  if (form.buscado === dni) return;
+  form.buscando = true; form.buscado = dni; vistaFormulario();
+  const { data, error } = await sb.from('personal')
+    .select('nombres,cargo,frente,celular,empresa').eq('dni', dni).maybeSingle();
+  form.buscando = false;
+  if (!error && data) {
+    form.nombres = data.nombres || '';
+    form.cargo   = data.cargo || '';
+    form.frente  = data.frente || '';
+    if (!form.celular) form.celular = data.celular || '';
+    if (data.empresa) form.empresa = data.empresa;
+    form.verificado = true;
+  } else {
+    form.verificado = false;
+    form.cargo = ''; form.frente = '';
+  }
+  vistaFormulario();
+  if (!form.verificado) document.getElementById('nombres')?.focus();
+}
+
 function totalPrendas(){ return items.reduce((s,i) => s + (parseInt(i.cantidad,10)||0), 0); }
 
 function campo(k, etiqueta, tipo='text', ph='', ro=false){
@@ -536,11 +590,12 @@ function vistaFormulario(aviso){
       <h1>Enviar mi ropa</h1>
       <p class="sub">El número de boleta se asigna solo, al momento de guardar.</p>
     </header>
+    ${fichaPadron()}
     <section class="rejilla">
       ${campo('fecha','Fecha','date')}
       ${campo('empresa','Empresa')}
-      ${campo('nombres','Nombres y apellidos','text','Ej. HUALLANCA HUAMANI, JULIO CESAR')}
-      ${campo('dni','DNI','text','8 dígitos')}
+      ${campo('dni','DNI o carné de extranjería','text','Escribe tu número de documento')}
+      ${campo('nombres','Nombres y apellidos','text','Se completa con tu DNI', form.verificado)}
       <div>
         <label for="hospedaje">Hospedaje</label>
         <select id="hospedaje">
@@ -550,6 +605,9 @@ function vistaFormulario(aviso){
         </select>
       </div>
       ${campo('habitacion','Nº habitación')}
+      ${form.verificado || form.cargo ? campo('cargo','Cargo','text','', true) : ''}
+      ${form.verificado || form.frente ? campo('frente','Grupo de personal','text','', true) : ''}
+      ${campo('celular','Celular','text','9 dígitos')}
       ${campo('lav_empresa','Empresa de lavandería','text','Se completa según el hotel', true)}
       ${campo('lav_ruc','RUC','text','Se completa según el hotel', true)}
     </section>
@@ -585,7 +643,19 @@ function vistaFormulario(aviso){
     </div>`;
 
   app.querySelectorAll('[data-f]').forEach(el =>
-    el.addEventListener('input', e => { form[e.target.dataset.f] = e.target.value; }));
+    el.addEventListener('input', e => {
+      const k = e.target.dataset.f;
+      let v = e.target.value;
+      if (k === 'dni' || k === 'celular') v = v.replace(/\D/g,'');
+      form[k] = v;
+      if (k === 'dni') {
+        clearTimeout(temporizadorDni);
+        if (form.verificado || form.buscado) {
+          form.verificado = false; form.buscado = ''; form.cargo = ''; form.frente = '';
+        }
+        if (/^\d{7,12}$/.test(v)) temporizadorDni = setTimeout(() => buscarPadron(v), 450);
+      }
+    }));
 
   document.getElementById('hospedaje').addEventListener('change', e => {
     form.hospedaje = e.target.value;
@@ -615,7 +685,8 @@ function vistaFormulario(aviso){
 
 async function guardar(){
   if (!form.nombres.trim()) return vistaFormulario('Escribe tus nombres y apellidos.');
-  if (!/^\d{8}$/.test(form.dni.trim())) return vistaFormulario('El DNI debe tener 8 dígitos.');
+  if (!/^\d{7,12}$/.test(form.dni.trim()))
+    return vistaFormulario('Escribe tu número de documento (entre 7 y 12 dígitos).');
   if (!form.hospedaje.trim()) return vistaFormulario('Selecciona tu hospedaje.');
   if (totalPrendas() === 0) return vistaFormulario('Ingresa la cantidad de al menos una prenda.');
 
@@ -626,6 +697,10 @@ async function guardar(){
       fecha: form.fecha,
       empresa: form.empresa.trim(),
       nombres: form.nombres.trim().toUpperCase(),
+      cargo: form.cargo.trim() || null,
+      frente: form.frente.trim() || null,
+      celular: form.celular.trim() || null,
+      verificado: form.verificado,
       dni: form.dni.trim(),
       hospedaje: form.hospedaje.trim().toUpperCase(),
       habitacion: form.habitacion.trim(),
@@ -667,6 +742,7 @@ function hojaHTML(b, det){
       <dl class="datos">
         ${dato('Fecha', fecha(b.fecha))}${dato('Empresa', b.empresa)}
         ${dato('Nombres', b.nombres)}${dato('DNI', b.dni)}
+        ${dato('Cargo', b.cargo || '—')}${dato('Grupo de personal', b.frente || '—')}
         ${dato('Hospedaje', b.hospedaje)}${dato('Nº habitación', b.habitacion || '—')}
         ${dato('Empresa de lavandería', b.lavanderia || '—')}${dato('RUC', b.ruc || '—')}
       </dl>
@@ -836,6 +912,9 @@ function filtrosDeRol(){
     ['registrada','Por verificar'], ['verificada','Verificadas'], ['todas','Todas']];
   if (perfil.rol === 'lavanderia') return [
     ['verificada','Por recoger'], ['recogida','En lavandería'], ['entregada','Entregadas'], ['todas','Todas']];
+  if (perfil.rol === 'ssgg') return [
+    ['todas','Todas'], ['registrada','Por verificar'], ['verificada','Por recoger'],
+    ['recogida','En lavandería'], ['entregada','Entregadas'], ['anulada','Anuladas']];
   return [
     ['registrada','Por verificar'], ['verificada','Por recoger'], ['recogida','En lavandería'],
     ['entregada','Entregadas'], ['anulada','Anuladas'], ['todas','Todas']];
@@ -869,13 +948,15 @@ function vistaLogin(aviso, correo=''){
 function ambito(){
   if (perfil.rol === 'recepcion') return esc(perfil.hospedaje || 'sin hotel asignado');
   if (perfil.rol === 'lavanderia') return 'RUC ' + esc(perfil.ruc || '—');
+  if (perfil.rol === 'ssgg') return 'consulta de todos los hoteles';
   return 'todos los hoteles';
 }
 
 async function vistaPanel(){
   app.innerHTML = `
     <header class="barra">
-      <div><h1>${perfil.rol === 'recepcion' ? 'Boletas del hotel' : 'Boletas de lavandería'}</h1>
+      <div><h1>${perfil.rol === 'recepcion' ? 'Boletas del hotel'
+        : perfil.rol === 'ssgg' ? 'Todas las boletas' : 'Boletas de lavandería'}</h1>
       <p class="sub">${esc(perfil.nombre)} · ${ambito()}</p></div>
       <button class="btn2" id="salir">Salir</button>
     </header>
@@ -920,6 +1001,7 @@ async function vistaPanel(){
     c.outerHTML = `<p class="marco" style="margin-top:32px;color:var(--texto)">
       No hay boletas en esta vista. ${perfil.rol === 'recepcion'
         ? 'Aparecerán aquí en cuanto el personal del hotel registre su ropa.'
+        : perfil.rol === 'ssgg' ? 'Prueba quitando el filtro de fechas.'
         : 'Aparecerán en cuanto recepción dé el visto bueno.'}</p>`;
     return;
   }
@@ -979,6 +1061,10 @@ async function exportarExcel(lista){
         'Estado': b.estado === 'anulada' ? 'Anulada' : PASOS[indicePaso(b.estado)]?.largo || b.estado,
         'Trabajador': b.nombres,
         'DNI': b.dni,
+        'Verificado en padrón': b.verificado ? 'Sí' : 'No',
+        'Cargo': b.cargo || '',
+        'Grupo de personal': b.frente || '',
+        'Celular': b.celular || '',
         'Empresa': b.empresa,
         'Hospedaje': b.hospedaje,
         'Habitación': b.habitacion || '',
@@ -1135,6 +1221,11 @@ async function vistaDetalle(aviso){
         b.habitacion?` — Hab. ${esc(b.habitacion)}`:''}</p>
       ${b.lavanderia?`<p style="color:var(--texto);font-size:15px;margin:2px 0 0">${
         esc(b.lavanderia)} · RUC ${esc(b.ruc||'')}</p>`:''}
+      ${b.cargo || b.frente ? `<p style="color:var(--texto);font-size:15px;margin:2px 0 0">${
+        esc(b.cargo||'')}${b.cargo && b.frente ? ' · ' : ''}${esc(b.frente||'')}</p>` : ''}
+      ${b.celular?`<p style="color:var(--texto);font-size:15px;margin:2px 0 0">Cel. ${esc(b.celular)}</p>`:''}
+      ${b.verificado === false ? `<p class="aviso">Datos no verificados: este DNI no estaba en el
+        padrón de obra al registrar la boleta.</p>` : ''}
       ${b.observaciones?`<p class="nota">Indicación del trabajador: ${esc(b.observaciones)}</p>`:''}
       <dl class="firmas">
         <div><dt>Recepción</dt><dd>${b.verificada_por_nombre
@@ -1146,6 +1237,8 @@ async function vistaDetalle(aviso){
       </dl>
     </div>
 
+    ${rol === 'ssgg' ? `<p class="nota">Vista de consulta: puedes descargar el PDF y los
+      reportes, pero las aprobaciones las registra recepción y lavandería.</p>` : ''}
     <div class="totales"><h2>${cuenta ? 'Conteo de prendas' : 'Prendas declaradas'}</h2></div>
     <table>
       <thead><tr><th>Prenda</th><th class="num">Declarado</th>${
