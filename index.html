@@ -584,6 +584,125 @@ function vistaClave(aviso, ok){
   });
 }
 
+/* ---------- Portada ---------- */
+const icoRopa = `<svg viewBox="0 0 24 24" fill="none" stroke="#1B3A6B" stroke-width="1.6"
+  stroke-linecap="round" stroke-linejoin="round"><path d="M9 3l3 2 3-2 5 3-2 4h-2v11H8V10H6L4 6z"/></svg>`;
+const icoEscudo = `<svg viewBox="0 0 24 24" fill="none" stroke="#00875A" stroke-width="1.6"
+  stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l8 3v6c0 5-3.5 9-8 11-4.5-2-8-6-8-11V5z"/><path d="M9 12l2 2 4-4"/></svg>`;
+const icoLupa = `<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#64748B"
+  stroke-width="1.8" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>`;
+
+function vistaPortal(){
+  emitida = null;
+  app.className = 'ancho';
+  const icoPin = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18"><path d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="2.5"/></svg>`;
+  const icoBolso = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8h12l2 13H4L6 8Z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/><path d="M8 12h8"/></svg>`;
+  const icoLav = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3"/><path d="M8 6h.01M11 6h.01"/></svg>`;
+  const icoUser = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="3"/><path d="M5 20c.8-3.3 3.1-5 7-5s6.2 1.7 7 5"/><path d="M17 4v4M15 6h4"/></svg>`;
+  const icoDoc = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h9l4 4v14H6z"/><path d="M14 3v5h5M9 13h6M9 17h6"/></svg>`;
+  const icoBox = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m4 8 8-4 8 4-8 4-8-4Z"/><path d="M4 8v9l8 4 8-4V8M12 12v9"/></svg>`;
+  const icoAgua = `<svg viewBox="0 0 24 24" fill="none" stroke="#1668c4" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8c2.5-2 4.5 2 7 0s4.5-2 7 0 4 0 4 0"/><path d="M3 13c2.5-2 4.5 2 7 0s4.5-2 7 0 4 0 4 0"/><path d="M3 18c2.5-2 4.5 2 7 0s4.5-2 7 0 4 0 4 0"/></svg>`;
+  const icoPila = `<svg viewBox="0 0 24 24" fill="none" stroke="#1668c4" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="5" width="16" height="4" rx="1.5"/><rect x="4" y="11" width="16" height="4" rx="1.5"/><rect x="4" y="17" width="16" height="3" rx="1.5"/></svg>`;
+  const icoCheck = `<svg viewBox="0 0 24 24" fill="none" stroke="#009c7e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="m8 12 2.5 2.5L16 9"/></svg>`;
+  const icoShield = `<svg viewBox="0 0 24 24" fill="none" stroke="#28e0b6" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 20 6v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6l8-3Z"/><path d="m8.5 12 2.2 2.2 4.8-5"/></svg>`;
+  const icoClock = `<svg viewBox="0 0 24 24" fill="none" stroke="#28e0b6" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>`;
+  const icoLeaf = `<svg viewBox="0 0 24 24" fill="none" stroke="#28e0b6" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 4C10 4 5 8 5 14c0 3 2 5 5 5 6 0 9-6 10-15Z"/><path d="M4 21c3-5 7-8 12-10"/></svg>`;
+  app.innerHTML = `
+    <header class="topbar">
+      <div class="topbar-in">
+        <a href="#/" class="brand-main" aria-label="Inicio">
+          <img src="jjc.png" alt="JJC Ingeniería y Construcción">
+          <span class="brand-name">CONTRATISTAS<br>GENERALES</span>
+        </a>
+        <div class="top-info">
+          <span>${icoPin} CC0174 · Marcobre – Mina Justa</span>
+          <span class="portal">▣ &nbsp; Portal de Lavandería</span>
+        </div>
+      </div>
+    </header>
+
+    <section class="hero">
+      <div class="hero-in">
+        <div class="hero-copy">
+          <div class="chip">🧺 &nbsp; CC0174 · Marcobre – Mina Justa</div>
+          <h1>Portal digital de <strong>lavandería</strong></h1>
+          <p class="hero-desc">Registra, consulta y controla tus prendas de lavandería de manera rápida, segura y sencilla.</p>
+          <div class="beneficios">
+            <div class="beneficio">${icoShield}<span><b>Seguro</b><small>Tus datos protegidos</small></span></div>
+            <div class="beneficio">${icoClock}<span><b>Rápido</b><small>Sin filas ni esperas</small></span></div>
+            <div class="beneficio">${icoLeaf}<span><b>Eficiente</b><small>Un mejor servicio para ti</small></span></div>
+          </div>
+        </div>
+      </div>
+      <div class="wave"></div>
+    </section>
+
+    <div class="cuerpo">
+      <div class="tarjetas">
+        <a class="tj" href="#/boleta" style="--img:url('entregar.jpg')">
+          <div class="icon-circle">${icoBolso}</div>
+          <h2>Entregar mi ropa</h2>
+          <p>Registra las prendas que estás enviando a la lavandería y genera tu boleta digital.</p>
+          <span class="cta azul">Iniciar entrega</span>
+        </a>
+        <a class="tj" href="#/mis-boletas" style="--img:url('consultar.jpg')">
+          <div class="icon-circle">${icoLav}</div>
+          <h2>Consultar mi ropa</h2>
+          <p>Revisa el estado de tus prendas y conoce en qué etapa se encuentran.</p>
+          <span class="cta verde">Consultar estado</span>
+        </a>
+        <a class="tj" href="#/panel" style="--img:url('gestion.jpg')">
+          <div class="icon-circle">${icoUser}</div>
+          <h2>Gestión de lavandería</h2>
+          <p>Acceso para recepción, lavandería y personal autorizado.</p>
+          <span class="cta morado">Ingresar</span>
+        </a>
+      </div>
+
+      <div class="buscador">
+        ${icoLupa}
+        <input id="dniPortada" inputmode="numeric" maxlength="12" placeholder="Ingresa tu DNI para entrar a tu cuenta" aria-label="Ingresar con DNI">
+        <button id="verEstado">Ingresar</button>
+      </div>
+
+      <p class="sub" style="text-align:center;margin:14px auto 0;max-width:62ch;font-size:14px">
+        Tus boletas son privadas. Para entregar o consultar tu ropa debes ingresar con tu
+        documento; la primera vez, la contraseña es tu mismo número.</p>
+
+      <section class="seguimiento">
+        <div class="seguimiento-head">
+          <div>
+            <h2>Seguimiento de tu ropa</h2>
+            <p>Conoce en qué etapa se encuentra tu prenda.</p>
+          </div>
+          <em style="font-size:13px;color:#1b4a83;font-weight:700">De tu mano a tu ropa limpia ✓</em>
+        </div>
+        <div class="ruta-home">
+          ${[
+            [1, icoDoc,   'Registrada',    'Se ha creado tu boleta'],
+            [2, icoBox,   'Recepcionada',  'Verificada en recepción del hotel'],
+            [3, icoLav,   'En lavandería', 'Recogida y en proceso de lavado'],
+            [4, icoAgua,  'Lavada',        'Terminó el ciclo de lavado'],
+            [5, icoPila,  'Lista',         'Preparada para entregar'],
+            [6, icoCheck, 'Entregada',     '¡Gracias por tu paciencia!']
+          ].map(([n, ico, titulo, desc]) => `
+            <div class="paso-home">
+              <span class="paso-num">${n}</span>
+              <div class="paso-icon">${ico}</div>
+              ${titulo}
+              <span class="paso-desc">${desc}</span>
+            </div>`).join('')}
+        </div>
+      </section>
+    </div>`;
+
+  const inp = document.getElementById('dniPortada');
+  inp.addEventListener('input', e => e.target.value = e.target.value.replace(/\D/g,''));
+  const go = () => { dniPrefill = inp.value.trim(); ir('/mis-boletas'); };
+  document.getElementById('verEstado').addEventListener('click', go);
+  inp.addEventListener('keydown', e => e.key === 'Enter' && go());
+}
+
 /* ---------- Formulario ---------- */
 async function sembrarForm(){
   if (form.dni === perfil.dni) return;
