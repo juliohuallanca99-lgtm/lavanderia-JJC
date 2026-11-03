@@ -247,6 +247,12 @@
   .fila{display:flex; align-items:center; gap:12px}
   .fila span{flex:1; font-size:15px; font-weight:500}
   .fila input{width:76px; text-align:center}
+  .fila input.nombre-extra{flex:1; width:auto; text-align:left}
+  .quitar-extra{
+    flex:none; width:34px; height:34px; border:1px solid var(--linea); background:#fff;
+    color:var(--sello); font-size:19px; line-height:1; border-radius:6px;
+  }
+  .quitar-extra:hover{background:var(--sello); border-color:var(--sello); color:#fff}
   .desc{margin-top:8px}
   .totales{display:flex; justify-content:space-between; align-items:baseline; border-bottom:1px solid var(--tinta); padding-bottom:8px; margin-top:36px}
 
@@ -382,6 +388,7 @@ const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;
 const hoy = () => new Date().toISOString().slice(0,10);
 
 let temporizadorDni = null;
+let extras = [];
 let form = null, items = null, emitida = null, sesion = null, perfil = null,
     filtro = '', boletas = [], abierta = null, detalle = [], valida = null,
     dniPrefill = '', desde = '', hasta = '';
@@ -391,6 +398,7 @@ const resetForm = () => {
            cargo:'', frente:'', celular:'', verificado:false, buscando:false, buscado:'',
            hospedaje:'', habitacion:'', lav_empresa:'', lav_ruc:'', observaciones:'' };
   items = TIPOS.map(() => ({ cantidad:'', descripcion:'' }));
+  extras = [];
 };
 resetForm();
 
@@ -720,7 +728,10 @@ async function buscarPadron(dni){
   if (!form.verificado) document.getElementById('nombres')?.focus();
 }
 
-function totalPrendas(){ return items.reduce((s,i) => s + (parseInt(i.cantidad,10)||0), 0); }
+function totalPrendas(){
+  return items.reduce((s,i) => s + (parseInt(i.cantidad,10)||0), 0)
+       + extras.reduce((s,e) => s + (parseInt(e.cantidad,10)||0), 0);
+}
 
 function campo(k, etiqueta, tipo='text', ph='', ro=false){
   return `<div>
@@ -775,7 +786,28 @@ function vistaFormulario(aviso){
                      placeholder="Descripción (color, marca, detalle)" value="${esc(items[i].descripcion)}">` : ''}
           </li>`;
         }).join('')}
+
+        ${extras.map((e,i) => `
+          <li class="activo">
+            <div class="fila">
+              <input class="nombre-extra" data-ex-nom="${i}" value="${esc(e.nombre)}"
+                     placeholder="Escribe qué prenda es" aria-label="Nombre de la prenda ${i+1}">
+              <input type="number" min="0" inputmode="numeric" data-ex-cant="${i}"
+                     aria-label="Cantidad" value="${esc(e.cantidad)}">
+              <button type="button" class="quitar-extra" data-ex-del="${i}"
+                      aria-label="Quitar esta prenda">&times;</button>
+            </div>
+            <input class="desc" data-ex-desc="${i}" value="${esc(e.descripcion)}"
+                   placeholder="Descripción (color, marca, detalle)"
+                   aria-label="Descripción de la prenda ${i+1}">
+          </li>`).join('')}
       </ul>
+
+      <div class="acciones" style="margin-top:14px">
+        <button type="button" class="btn2" id="addExtra">+ Agregar otra prenda</button>
+      </div>
+      <p class="sub" style="font-size:13.5px;margin-top:8px">
+        Usa esto para prendas que no están en la lista. Escribe el nombre y la cantidad.</p>
     </section>
     <section style="margin-top:24px">
       <label for="observaciones">Observaciones</label>
@@ -826,6 +858,32 @@ function vistaFormulario(aviso){
   app.querySelectorAll('[data-desc]').forEach(el =>
     el.addEventListener('input', e => { items[+e.target.dataset.desc].descripcion = e.target.value; }));
 
+  document.getElementById('addExtra').addEventListener('click', () => {
+    extras.push({ nombre:'', cantidad:'', descripcion:'' });
+    vistaFormulario();
+    const campos = app.querySelectorAll('[data-ex-nom]');
+    campos[campos.length - 1]?.focus();
+  });
+
+  app.querySelectorAll('[data-ex-nom]').forEach(el =>
+    el.addEventListener('input', e => { extras[+e.target.dataset.exNom].nombre = e.target.value; }));
+
+  app.querySelectorAll('[data-ex-desc]').forEach(el =>
+    el.addEventListener('input', e => { extras[+e.target.dataset.exDesc].descripcion = e.target.value; }));
+
+  app.querySelectorAll('[data-ex-cant]').forEach(el =>
+    el.addEventListener('input', e => {
+      extras[+e.target.dataset.exCant].cantidad = e.target.value.replace(/\D/g,'');
+      e.target.value = extras[+e.target.dataset.exCant].cantidad;
+      document.getElementById('tot').textContent = totalPrendas();
+    }));
+
+  app.querySelectorAll('[data-ex-del]').forEach(el =>
+    el.addEventListener('click', e => {
+      extras.splice(+e.currentTarget.dataset.exDel, 1);
+      vistaFormulario();
+    }));
+
   document.getElementById('guardar').addEventListener('click', guardar);
   activarSalir();
 }
@@ -835,6 +893,13 @@ async function guardar(){
   if (!form.dni) return vistaFormulario('No se pudo leer tu documento. Vuelve a ingresar.');
   if (!form.hospedaje.trim()) return vistaFormulario('Selecciona tu hospedaje.');
   if (totalPrendas() === 0) return vistaFormulario('Ingresa la cantidad de al menos una prenda.');
+  for (const e of extras) {
+    const c = parseInt(e.cantidad,10) || 0;
+    if (c > 0 && !e.nombre.trim())
+      return vistaFormulario('Escribe el nombre de la prenda que agregaste.');
+    if (e.nombre.trim() && c === 0)
+      return vistaFormulario(`Indica cuántas unidades de "${e.nombre.trim()}" entregas.`);
+  }
 
   const btn = document.getElementById('guardar');
   btn.disabled = true; btn.textContent = 'Guardando…';
@@ -862,6 +927,17 @@ async function guardar(){
       cantidad: parseInt(it.cantidad,10) || 0,
       descripcion: it.descripcion.trim() || null, orden: i
     })).filter(x => x.cantidad > 0);
+
+    extras.forEach((e,i) => {
+      const c = parseInt(e.cantidad,10) || 0;
+      if (c > 0 && e.nombre.trim()) det.push({
+        boleta_id: boleta.id,
+        tipo_ropa: e.nombre.trim().toUpperCase(),
+        cantidad: c,
+        descripcion: e.descripcion.trim() || null,
+        orden: 100 + i
+      });
+    });
 
     const { error: e2 } = await sb.from('boleta_items').insert(det);
     if (e2) throw e2;
