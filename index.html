@@ -396,7 +396,10 @@ resetForm();
 
 /* ---------- Router ---------- */
 window.addEventListener('hashchange', render);
-sb.auth.onAuthStateChange((_e, s) => { sesion = s; perfil = null; filtro = ''; render(); });
+sb.auth.onAuthStateChange((_e, s) => {
+  sesion = s; perfil = null; filtro = ''; emitida = null; abierta = null; detalle = [];
+  resetForm(); render();
+});
 
 (async () => {
   const { data } = await sb.auth.getSession();
@@ -407,13 +410,139 @@ sb.auth.onAuthStateChange((_e, s) => { sesion = s; perfil = null; filtro = ''; r
 function ruta(){ return (location.hash || '#/').replace('#','') || '/'; }
 function ir(r){ location.hash = '#' + r; }
 
+async function cargarPerfil(){
+  if (perfil || !sesion) return perfil;
+  const { data } = await sb.from('perfiles').select('*').eq('id', sesion.user.id).single();
+  perfil = data || { nombre: sesion.user.email, rol: 'recepcion' };
+  return perfil;
+}
+
 async function render(){
   const r = ruta();
   app.className = '';
-  if (r === '/boleta') return emitida ? vistaEmitida() : vistaFormulario();
-  if (r === '/mis-boletas') { const d = dniPrefill; dniPrefill = ''; return vistaMisBoletas(null, null, d, !!d); }
+
   if (r === '/panel') return vistaPrivada();
+
+  if (r === '/boleta' || r === '/mis-boletas' || r === '/clave') {
+    if (!sesion) return vistaAcceso(null, dniPrefill);
+    await cargarPerfil();
+    if (perfil.rol !== 'trabajador') return vistaOtroRol();
+    if (r === '/clave')  return vistaClave();
+    if (r === '/boleta') { await sembrarForm(); return emitida ? vistaEmitida() : vistaFormulario(); }
+    return vistaMisBoletas();
+  }
+
   return vistaPortal();
+}
+
+/* ---------- Acceso del trabajador ---------- */
+function vistaAcceso(aviso, dni=''){
+  dniPrefill = '';
+  app.innerHTML = `
+    <header class="cab">
+      <a class="volver" href="#/">← Inicio</a>
+      <h1>Ingresa con tu DNI</h1>
+      <p class="sub">Tus boletas son privadas: solo tú puedes verlas.</p>
+    </header>
+    <div class="marco" style="margin-top:28px;max-width:420px">
+      <div>
+        <label for="tdni">DNI o carné de extranjería</label>
+        <input id="tdni" class="mono" inputmode="numeric" maxlength="12"
+               autocomplete="username" value="${esc(dni)}">
+      </div>
+      <div style="margin-top:14px">
+        <label for="tclave">Contraseña</label>
+        <input id="tclave" type="password" autocomplete="current-password">
+      </div>
+      ${aviso?`<p class="aviso" role="alert">${esc(aviso)}</p>`:''}
+      <button class="btn" id="tentrar" style="width:100%;margin-top:18px">Entrar</button>
+      <p class="sub" style="font-size:13.5px;margin-top:14px">
+        La primera vez, tu contraseña es tu mismo número de documento.
+        Si no puedes entrar, avisa a Administración de obra.</p>
+    </div>`;
+
+  const cdni = document.getElementById('tdni');
+  cdni.addEventListener('input', e => e.target.value = e.target.value.replace(/\D/g,''));
+
+  const go = async () => {
+    const d = cdni.value.trim();
+    const c = document.getElementById('tclave').value;
+    if (!/^\d{7,12}$/.test(d)) return vistaAcceso('Escribe tu número de documento.', d);
+    if (!c) return vistaAcceso('Escribe tu contraseña.', d);
+    const btn = document.getElementById('tentrar');
+    btn.disabled = true; btn.textContent = 'Ingresando…';
+    const { error } = await sb.auth.signInWithPassword({
+      email: d + '@lavanderia.jjc', password: c });
+    if (error) vistaAcceso('Documento o contraseña incorrectos.', d);
+  };
+  document.getElementById('tentrar').addEventListener('click', go);
+  document.getElementById('tclave').addEventListener('keydown', e => e.key === 'Enter' && go());
+  cdni.addEventListener('keydown', e => e.key === 'Enter' && document.getElementById('tclave').focus());
+}
+
+function vistaOtroRol(){
+  const esTrab = perfil.rol === 'trabajador';
+  app.innerHTML = `
+    <header class="cab">
+      <a class="volver" href="#/">← Inicio</a>
+      <h1>Esta sección no es para tu cuenta</h1>
+    </header>
+    <p class="sub" style="margin-top:20px">Has ingresado como <strong>${esc(perfil.nombre)}</strong>.
+    ${esTrab ? 'Esa sección es para recepción y lavandería.'
+             : 'Tu cuenta es de gestión, no registra boletas de trabajador.'}</p>
+    <div class="acciones">
+      <a class="btn" href="#${esTrab ? '/mis-boletas' : '/panel'}">${
+        esTrab ? 'Ver mis boletas' : 'Ir a mi panel'}</a>
+      <button class="btn2" id="salirOtro">Cerrar sesión</button>
+    </div>`;
+  document.getElementById('salirOtro').addEventListener('click', async () => {
+    await sb.auth.signOut(); ir('/');
+  });
+}
+
+function cabeceraTrabajador(titulo, sub){
+  return `
+    <header class="barra">
+      <div><h1>${titulo}</h1><p class="sub">${esc(perfil.nombre)} · DNI ${esc(perfil.dni||'')}</p></div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap">
+        <a class="btn2" href="#/clave">Cambiar contraseña</a>
+        <button class="btn2" id="salirTrab">Salir</button>
+      </div>
+    </header>
+    ${sub ? `<p class="sub" style="margin-top:14px">${sub}</p>` : ''}`;
+}
+
+function activarSalir(){
+  document.getElementById('salirTrab')?.addEventListener('click', async () => {
+    await sb.auth.signOut(); ir('/');
+  });
+}
+
+function vistaClave(aviso, ok){
+  app.innerHTML = `
+    <header class="cab">
+      <a class="volver" href="#/mis-boletas">← Mis boletas</a>
+      <h1>Cambiar mi contraseña</h1>
+      <p class="sub">Elige una que solo tú conozcas. Mínimo 6 caracteres.</p>
+    </header>
+    <div class="marco" style="margin-top:24px;max-width:420px">
+      <div><label for="c1">Nueva contraseña</label>
+        <input id="c1" type="password" autocomplete="new-password"></div>
+      <div style="margin-top:14px"><label for="c2">Repítela</label>
+        <input id="c2" type="password" autocomplete="new-password"></div>
+      ${aviso?`<p class="aviso" role="alert">${esc(aviso)}</p>`:''}
+      ${ok?`<p class="nota" style="border-left-color:var(--verde)">Contraseña actualizada.</p>`:''}
+      <button class="btn" id="guardarClave" style="width:100%;margin-top:18px">Guardar</button>
+    </div>`;
+  document.getElementById('guardarClave').addEventListener('click', async e => {
+    const a = document.getElementById('c1').value, b = document.getElementById('c2').value;
+    if (a.length < 6) return vistaClave('La contraseña debe tener al menos 6 caracteres.');
+    if (a !== b) return vistaClave('Las dos contraseñas no coinciden.');
+    e.target.disabled = true; e.target.textContent = 'Guardando…';
+    const { error } = await sb.auth.updateUser({ password: a });
+    if (error) return vistaClave('No se pudo cambiar: ' + error.message);
+    vistaClave(null, true);
+  });
 }
 
 /* ---------- Portada ---------- */
@@ -493,9 +622,13 @@ function vistaPortal(){
 
       <div class="buscador">
         ${icoLupa}
-        <input id="dniPortada" inputmode="numeric" maxlength="8" placeholder="Ingresa tu DNI para consultar el estado de tu ropa" aria-label="Consultar boletas por DNI">
-        <button id="verEstado">Consultar</button>
+        <input id="dniPortada" inputmode="numeric" maxlength="12" placeholder="Ingresa tu DNI para entrar a tu cuenta" aria-label="Ingresar con DNI">
+        <button id="verEstado">Ingresar</button>
       </div>
+
+      <p class="sub" style="text-align:center;margin:14px auto 0;max-width:62ch;font-size:14px">
+        Tus boletas son privadas. Para entregar o consultar tu ropa debes ingresar con tu
+        documento; la primera vez, la contraseña es tu mismo número.</p>
 
       <section class="seguimiento">
         <div class="seguimiento-head">
@@ -527,11 +660,27 @@ function vistaPortal(){
   const inp = document.getElementById('dniPortada');
   inp.addEventListener('input', e => e.target.value = e.target.value.replace(/\D/g,''));
   const go = () => { dniPrefill = inp.value.trim(); ir('/mis-boletas'); };
+  // el destino exige sesión: si no la hay, el router muestra el acceso con el DNI puesto
   document.getElementById('verEstado').addEventListener('click', go);
   inp.addEventListener('keydown', e => e.key === 'Enter' && go());
 }
 
 /* ---------- Formulario ---------- */
+async function sembrarForm(){
+  if (form.dni === perfil.dni) return;
+  form.dni = perfil.dni || '';
+  form.nombres = perfil.nombre || '';
+  form.verificado = true;
+  const { data } = await sb.from('personal')
+    .select('cargo,frente,celular,empresa').eq('dni', form.dni).maybeSingle();
+  if (data) {
+    form.cargo = data.cargo || '';
+    form.frente = data.frente || '';
+    if (!form.celular) form.celular = data.celular || '';
+    if (data.empresa) form.empresa = data.empresa;
+  }
+}
+
 function fichaPadron(){
   if (form.buscando) return `<p class="nota" style="margin-top:20px">Buscando tu DNI en el padrón de obra…</p>`;
   if (form.verificado) return `
@@ -585,17 +734,14 @@ function campo(k, etiqueta, tipo='text', ph='', ro=false){
 
 function vistaFormulario(aviso){
   app.innerHTML = `
-    <header class="cab">
-      <a class="volver" href="#/">← Inicio</a>
-      <h1>Enviar mi ropa</h1>
-      <p class="sub">El número de boleta se asigna solo, al momento de guardar.</p>
-    </header>
+    ${cabeceraTrabajador('Entregar mi ropa',
+      'El número de boleta se asigna solo, al momento de guardar.')}
     ${fichaPadron()}
     <section class="rejilla">
       ${campo('fecha','Fecha','date')}
       ${campo('empresa','Empresa')}
-      ${campo('dni','DNI o carné de extranjería','text','Escribe tu número de documento')}
-      ${campo('nombres','Nombres y apellidos','text','Se completa con tu DNI', form.verificado)}
+      ${campo('dni','DNI o carné de extranjería','text','', true)}
+      ${campo('nombres','Nombres y apellidos','text','', true)}
       <div>
         <label for="hospedaje">Hospedaje</label>
         <select id="hospedaje">
@@ -681,12 +827,12 @@ function vistaFormulario(aviso){
     el.addEventListener('input', e => { items[+e.target.dataset.desc].descripcion = e.target.value; }));
 
   document.getElementById('guardar').addEventListener('click', guardar);
+  activarSalir();
 }
 
 async function guardar(){
   if (!form.nombres.trim()) return vistaFormulario('Escribe tus nombres y apellidos.');
-  if (!/^\d{7,12}$/.test(form.dni.trim()))
-    return vistaFormulario('Escribe tu número de documento (entre 7 y 12 dígitos).');
+  if (!form.dni) return vistaFormulario('No se pudo leer tu documento. Vuelve a ingresar.');
   if (!form.hospedaje.trim()) return vistaFormulario('Selecciona tu hospedaje.');
   if (totalPrendas() === 0) return vistaFormulario('Ingresa la cantidad de al menos una prenda.');
 
@@ -827,43 +973,40 @@ function vistaEmitida(){
     e.target.disabled = false; e.target.textContent = 'Descargar PDF';
   });
   document.getElementById('otra').addEventListener('click', () => {
-    const h = form.hospedaje, hab = form.habitacion, le = form.lav_empresa, lr = form.lav_ruc;
-    resetForm(); form.hospedaje = h; form.habitacion = hab; form.lav_empresa = le; form.lav_ruc = lr;
+    const g = { hospedaje:form.hospedaje, habitacion:form.habitacion,
+                lav_empresa:form.lav_empresa, lav_ruc:form.lav_ruc,
+                dni:form.dni, nombres:form.nombres, cargo:form.cargo,
+                frente:form.frente, celular:form.celular, empresa:form.empresa,
+                verificado:form.verificado };
+    resetForm(); Object.assign(form, g);
     emitida = null; vistaFormulario(); window.scrollTo({top:0});
   });
 }
 
 /* ---------- Mis boletas ---------- */
-function vistaMisBoletas(lista, aviso, dni='', autobuscar=false){
-  app.innerHTML = `
-    <header class="cab">
-      <a class="volver" href="#/">← Inicio</a>
-      <h1>Mis boletas</h1>
-      <p class="sub">Escribe tu DNI para ver en qué paso va tu ropa.</p>
-    </header>
-    <div style="display:flex;gap:12px;align-items:flex-end;margin-top:24px;flex-wrap:wrap">
-      <div><label for="bdni">DNI</label>
-        <input id="bdni" class="mono" inputmode="numeric" maxlength="8" style="width:170px" value="${esc(dni)}"></div>
-      <button class="btn" id="buscar">Buscar</button>
-    </div>
-    ${aviso ? `<p class="aviso" role="alert">${esc(aviso)}</p>` : ''}
-    ${lista ? (lista.length ? `<ul class="lista">${lista.map(tarjetaTrabajador).join('')}</ul>`
-      : `<div class="marco" style="margin-top:32px">
-           <strong>Todavía no hay boletas con ese DNI.</strong>
-           <p><a href="#/boleta"><strong>Registrar mi primera boleta</strong></a></p></div>`) : ''}`;
+async function vistaMisBoletas(lista, aviso){
+  if (!lista && !aviso) {
+    app.innerHTML = `${cabeceraTrabajador('Mis boletas','')}
+      <p class="cargando">Cargando tus boletas…</p>`;
+    activarSalir();
+    const { data, error } = await sb.from('boletas').select('*')
+      .eq('dni', perfil.dni).order('numero', { ascending: false });
+    return vistaMisBoletas(data || [], error ? 'No se pudo consultar: ' + error.message : null);
+  }
 
-  const input = document.getElementById('bdni');
-  input.addEventListener('input', e => e.target.value = e.target.value.replace(/\D/g,''));
-  const go = async () => {
-    const d = input.value.trim();
-    if (!/^\d{8}$/.test(d)) return vistaMisBoletas(null, 'El DNI debe tener 8 dígitos.', d);
-    const { data, error } = await sb.from('boletas').select('*').eq('dni', d).order('numero',{ascending:false});
-    if (error) return vistaMisBoletas(null, 'No se pudo consultar: ' + error.message, d);
-    vistaMisBoletas(data || [], null, d);
-  };
-  document.getElementById('buscar').addEventListener('click', go);
-  input.addEventListener('keydown', e => e.key === 'Enter' && go());
-  if (autobuscar) go();
+  app.innerHTML = `
+    ${cabeceraTrabajador('Mis boletas','Aquí ves solo las tuyas, con el paso en el que va cada una.')}
+    ${aviso ? `<p class="aviso" role="alert">${esc(aviso)}</p>` : ''}
+    ${lista && lista.length
+      ? `<ul class="lista">${lista.map(tarjetaTrabajador).join('')}</ul>`
+      : `<div class="marco" style="margin-top:32px">
+           <strong>Todavía no has registrado ninguna boleta.</strong>
+           <p><a href="#/boleta"><strong>Entregar mi ropa</strong></a></p></div>`}
+    <div class="acciones">
+      <a class="btn" href="#/boleta">Entregar más ropa</a>
+      <a class="btn2" href="#/">Volver al inicio</a>
+    </div>`;
+  activarSalir();
 }
 
 function tarjetaTrabajador(b){
@@ -898,10 +1041,8 @@ function tarjetaTrabajador(b){
 /* ---------- Acceso privado ---------- */
 async function vistaPrivada(){
   if (!sesion) return vistaLogin();
-  if (!perfil) {
-    const { data } = await sb.from('perfiles').select('*').eq('id', sesion.user.id).single();
-    perfil = data || { nombre: sesion.user.email, rol: 'recepcion' };
-  }
+  await cargarPerfil();
+  if (perfil.rol === 'trabajador') return vistaOtroRol();
   if (!filtro) filtro = filtrosDeRol()[0][0];
   if (abierta) return vistaDetalle();
   return vistaPanel();
