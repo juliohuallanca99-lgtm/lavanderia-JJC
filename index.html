@@ -86,7 +86,17 @@
   .wave{position:absolute;z-index:2;left:-3%;right:-3%;bottom:-1px;height:54px;background:var(--papel);border-radius:50% 50% 0 0/100% 100% 0 0}
 
   .cuerpo{width:min(1240px, calc(100% - 40px)); margin:-30px auto 0; position:relative; z-index:4; padding-bottom:70px}
+  .saludo{
+    display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap;
+    background:#fff; border:1px solid #dfe5f1; border-radius:14px; padding:14px 20px;
+    margin-bottom:20px; box-shadow:0 10px 28px rgba(0,32,91,.08); position:relative; z-index:4;
+  }
+  .saludo-hola{margin:0; font-size:17px; font-weight:700; color:#10356e}
+  .saludo-rol{margin:2px 0 0; font-size:13px; color:var(--texto);
+    font-family:'IBM Plex Mono',monospace; letter-spacing:.03em}
   .tarjetas{display:grid; grid-template-columns:repeat(3,1fr); gap:22px; position:relative}
+  .tarjetas:has(.tj:only-child){grid-template-columns:minmax(0,420px)}
+  .tarjetas:has(.tj:first-child:nth-last-child(2)){grid-template-columns:repeat(2,1fr)}
   .tj{
     min-height:0; overflow:hidden; position:relative;
     background:#fff; border:1px solid #dfe5f1; border-radius:16px; padding:22px 24px;
@@ -431,6 +441,7 @@ async function render(){
   const r = ruta();
   app.className = '';
 
+  if (r === '/') { if (sesion) await cargarPerfil(); return vistaPortal(); }
   if (r === '/panel') return vistaPrivada();
 
   if (r === '/boleta' || r === '/mis-boletas' || r === '/clave') {
@@ -597,6 +608,8 @@ const icoLupa = `<svg viewBox="0 0 24 24" width="20" height="20" fill="none" str
 function vistaPortal(){
   emitida = null;
   app.className = 'ancho';
+  const quien = !sesion || !perfil ? 'visita'
+              : perfil.rol === 'trabajador' ? 'trabajador' : 'gestion';
   const icoPin = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18"><path d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="2.5"/></svg>`;
   const icoBolso = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8h12l2 13H4L6 8Z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/><path d="M8 12h8"/></svg>`;
   const icoLav = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3"/><path d="M8 6h.01M11 6h.01"/></svg>`;
@@ -640,7 +653,19 @@ function vistaPortal(){
     </section>
 
     <div class="cuerpo">
+      ${quien === 'visita' ? '' : `
+        <div class="saludo">
+          <div>
+            <p class="saludo-hola">Hola, ${esc((perfil.nombre || '').split(' ').slice(-2).join(' ') || perfil.nombre)}</p>
+            <p class="saludo-rol">${quien === 'trabajador'
+              ? 'DNI ' + esc(perfil.dni || '')
+              : 'Acceso de gestión'}</p>
+          </div>
+          <button class="btn2" id="salirPortada">Salir</button>
+        </div>`}
+
       <div class="tarjetas">
+        ${quien === 'gestion' ? '' : `
         <a class="tj" href="#/boleta" style="--img:url('entregar.jpg')">
           <div class="icon-circle">${icoBolso}</div>
           <h2>Entregar mi ropa</h2>
@@ -652,24 +677,20 @@ function vistaPortal(){
           <h2>Consultar mi ropa</h2>
           <p>Revisa el estado de tus prendas y conoce en qué etapa se encuentran.</p>
           <span class="cta verde">Consultar estado</span>
-        </a>
+        </a>`}
+        ${quien === 'trabajador' ? '' : `
         <a class="tj" href="#/panel" style="--img:url('gestion.jpg')">
           <div class="icon-circle">${icoUser}</div>
           <h2>Gestión de lavandería</h2>
           <p>Acceso para recepción, lavandería y personal autorizado.</p>
-          <span class="cta morado">Ingresar</span>
-        </a>
+          <span class="cta morado">${quien === 'gestion' ? 'Ir a mi panel' : 'Ingresar'}</span>
+        </a>`}
       </div>
 
-      <div class="buscador">
-        ${icoLupa}
-        <input id="dniPortada" inputmode="numeric" maxlength="12" placeholder="Ingresa tu DNI para entrar a tu cuenta" aria-label="Ingresar con DNI">
-        <button id="verEstado">Ingresar</button>
-      </div>
-
-      <p class="sub" style="text-align:center;margin:14px auto 0;max-width:62ch;font-size:14px">
-        Tus boletas son privadas. Para entregar o consultar tu ropa debes ingresar con tu
-        documento; la primera vez, la contraseña es tu mismo número.</p>
+      ${quien === 'visita' ? `
+        <p class="sub" style="text-align:center;margin:22px auto 0;max-width:62ch;font-size:14px">
+          Tus boletas son privadas. Para entregar o consultar tu ropa debes ingresar con tu
+          documento; la primera vez, la contraseña es tu mismo número.</p>` : ''}
 
       <section class="seguimiento">
         <div class="seguimiento-head">
@@ -698,11 +719,9 @@ function vistaPortal(){
       </section>
     </div>`;
 
-  const inp = document.getElementById('dniPortada');
-  inp.addEventListener('input', e => e.target.value = e.target.value.replace(/\D/g,''));
-  const go = () => { dniPrefill = inp.value.trim(); ir('/mis-boletas'); };
-  document.getElementById('verEstado').addEventListener('click', go);
-  inp.addEventListener('keydown', e => e.key === 'Enter' && go());
+  document.getElementById('salirPortada')?.addEventListener('click', async () => {
+    await sb.auth.signOut();
+  });
 }
 
 /* ---------- Formulario ---------- */
