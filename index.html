@@ -276,7 +276,7 @@
     border:3px solid var(--sello); color:var(--sello); font-weight:700; font-size:15px;
     letter-spacing:.12em; padding:5px 16px; transform:rotate(-6deg); display:inline-block;
   }
-  .firmas{display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; margin-top:16px; font-size:12.5px}
+  .firmas{display:grid; grid-template-columns:repeat(auto-fit,minmax(130px,1fr)); gap:10px; margin-top:16px; font-size:12.5px}
   .firmas div{border:1px solid var(--linea); padding:8px 10px}
   .firmas dt{font-weight:600; text-transform:uppercase; letter-spacing:.07em;
     font-size:10.5px; color:#6B7180}
@@ -291,7 +291,8 @@
   .estado.paso1{background:#fff; color:var(--tinta)}
   .estado.paso2{background:#FDF2E3; border-color:var(--ambar); color:var(--ambar)}
   .estado.paso3{background:#E7EEF8; border-color:var(--trama); color:var(--trama)}
-  .estado.paso4{background:var(--verde); border-color:var(--verde); color:#fff}
+  .estado.paso4{background:#E4F1EA; border-color:var(--verde); color:#0F5A43}
+  .estado.paso5{background:var(--verde); border-color:var(--verde); color:#fff}
   .estado.nula{background:var(--sello); border-color:var(--sello); color:#fff}
 
   .filtros{display:flex; gap:8px; margin-top:20px; flex-wrap:wrap}
@@ -374,7 +375,8 @@ const PASOS = [
   { est:'registrada', corto:'Por verificar',   largo:'Registrada por el trabajador' },
   { est:'verificada', corto:'Por recoger',     largo:'Verificada en recepción' },
   { est:'recogida',   corto:'En lavandería',   largo:'Recogida por la lavandería' },
-  { est:'entregada',  corto:'Lista en hotel',  largo:'Devuelta limpia al hotel' }
+  { est:'entregada',  corto:'Lista para recoger', largo:'Devuelta limpia al hotel' },
+  { est:'recibida',   corto:'Entregada',          largo:'Entregada al trabajador' }
 ];
 const indicePaso = e => PASOS.findIndex(p => p.est === e);
 const claseEstado = e => e === 'anulada' ? 'nula' : 'paso' + (indicePaso(e) + 1);
@@ -1016,6 +1018,8 @@ function hojaHTML(b, det){
         <strong>Nota de lavandería:</strong> ${esc(b.obs_lavanderia)}</div>` : ''}
       ${b.obs_entrega ? `<div style="border:1px solid var(--linea);padding:12px;margin-top:8px;font-size:15px">
         <strong>Nota de entrega:</strong> ${esc(b.obs_entrega)}</div>` : ''}
+      ${b.obs_recibida ? `<div style="border:1px solid var(--linea);padding:12px;margin-top:8px;font-size:15px">
+        <strong>Entrega al trabajador:</strong> ${esc(b.obs_recibida)}</div>` : ''}
       <dl class="firmas">
         <div><dt>Verificado en recepción</dt>
           <dd>${b.verificada_por_nombre ? esc(b.verificada_por_nombre) + '<br>' + sello(b.verificada_en) : 'Pendiente'}</dd></div>
@@ -1023,6 +1027,8 @@ function hojaHTML(b, det){
           <dd>${b.validado_por_nombre ? esc(b.validado_por_nombre) + '<br>' + sello(b.validado_en) : 'Pendiente'}</dd></div>
         <div><dt>Devuelto limpio al hotel</dt>
           <dd>${b.entregada_por_nombre ? esc(b.entregada_por_nombre) + '<br>' + sello(b.entregada_en) : 'Pendiente'}</dd></div>
+        <div><dt>Entregado al trabajador</dt>
+          <dd>${b.recibida_por_nombre ? esc(b.recibida_por_nombre) + '<br>' + sello(b.recibida_en) : 'Pendiente'}</dd></div>
       </dl>
       ${anu ? `<p style="text-align:center;font-size:13px;color:var(--sello);margin-top:16px">
         Anulada por ${esc(b.anulada_por_nombre || 'administración')}${b.anulada_en ? ' el ' + sello(b.anulada_en) : ''}.${
@@ -1121,7 +1127,8 @@ function tarjetaTrabajador(b){
   const detalles = [
     b.verificada_en ? sello(b.verificada_en) : '',
     b.validado_en ? sello(b.validado_en) : '',
-    b.entregada_en ? sello(b.entregada_en) : ''
+    b.entregada_en ? sello(b.entregada_en) : '',
+    b.recibida_en ? sello(b.recibida_en) : ''
   ];
   return `<li><div class="marco">
     <div class="lin1">
@@ -1156,15 +1163,18 @@ async function vistaPrivada(){
 
 function filtrosDeRol(){
   if (perfil.rol === 'recepcion') return [
-    ['registrada','Por verificar'], ['verificada','Verificadas'], ['todas','Todas']];
+    ['registrada','Por verificar'], ['entregada','Por entregar'],
+    ['verificada','Verificadas'], ['recibida','Entregadas'], ['todas','Todas']];
   if (perfil.rol === 'lavanderia') return [
-    ['verificada','Por recoger'], ['recogida','En lavandería'], ['entregada','Entregadas'], ['todas','Todas']];
+    ['verificada','Por recoger'], ['recogida','En lavandería'],
+    ['entregada','Dejadas en hotel'], ['recibida','Cerradas'], ['todas','Todas']];
   if (perfil.rol === 'ssgg') return [
     ['todas','Todas'], ['registrada','Por verificar'], ['verificada','Por recoger'],
-    ['recogida','En lavandería'], ['entregada','Entregadas'], ['anulada','Anuladas']];
+    ['recogida','En lavandería'], ['entregada','Por entregar'],
+    ['recibida','Entregadas'], ['anulada','Anuladas']];
   return [
     ['registrada','Por verificar'], ['verificada','Por recoger'], ['recogida','En lavandería'],
-    ['entregada','Entregadas'], ['anulada','Anuladas'], ['todas','Todas']];
+    ['entregada','Por entregar'], ['recibida','Entregadas'], ['anulada','Anuladas'], ['todas','Todas']];
 }
 
 function vistaLogin(aviso, correo=''){
@@ -1253,7 +1263,7 @@ async function vistaPanel(){
     return;
   }
 
-  const cerradas = boletas.filter(x => x.estado === 'entregada');
+  const cerradas = boletas.filter(x => x.estado === 'recibida');
   const zona = document.getElementById('zona-zip');
   if (zona) {
     zona.innerHTML = `
@@ -1281,7 +1291,7 @@ async function vistaPanel(){
     el.addEventListener('click', () => {
       abierta = boletas.find(x => x.id === el.dataset.id);
       valida = { kilos: abierta.total_kilos ?? '', obs: abierta.obs_lavanderia ?? '',
-                 entrega: abierta.obs_entrega ?? '' };
+                 entrega: abierta.obs_entrega ?? '', recibida: abierta.obs_recibida ?? '' };
       detalle = [];
       vistaDetalle(); window.scrollTo({top:0});
     }));
@@ -1325,11 +1335,14 @@ async function exportarExcel(lista){
         'Verificado el': f(b.verificada_en),
         'Recogido por': b.validado_por_nombre || '',
         'Recogido el': f(b.validado_en),
-        'Entregado por': b.entregada_por_nombre || '',
-        'Entregado el': f(b.entregada_en),
+        'Dejado en hotel por': b.entregada_por_nombre || '',
+        'Dejado en hotel el': f(b.entregada_en),
+        'Entregado al trabajador por': b.recibida_por_nombre || '',
+        'Entregado al trabajador el': f(b.recibida_en),
         'Obs. del trabajador': b.observaciones || '',
         'Obs. del recojo': b.obs_lavanderia || '',
         'Obs. de la entrega': b.obs_entrega || '',
+        'Obs. entrega al trabajador': b.obs_recibida || '',
         'Anulada por': b.anulada_por_nombre || '',
         'Motivo de anulación': b.motivo_anulacion || ''
       };
@@ -1404,7 +1417,7 @@ async function descargarUnido(lista){
 
     const tramo = (desde || hasta) ? `_${desde||'inicio'}_a_${hasta||'hoy'}` : '';
     if (btn) btn.textContent = 'Guardando…';
-    await worker.save(`Boletas_entregadas${tramo}.pdf`);
+    await worker.save(`Boletas_cerradas${tramo}.pdf`);
   } catch (err) {
     alert('No se pudo generar el PDF: ' + (err.message || err));
   } finally {
@@ -1431,7 +1444,7 @@ async function descargarZIP(lista){
   const url = URL.createObjectURL(salida);
   const a = document.createElement('a');
   const tramo = (desde || hasta) ? `_${desde||'inicio'}_a_${hasta||'hoy'}` : '';
-  a.href = url; a.download = `Boletas_entregadas${tramo}.zip`;
+  a.href = url; a.download = `Boletas_cerradas${tramo}.zip`;
   a.click();
   URL.revokeObjectURL(url);
   if (btn) btn.textContent = rotulo;
@@ -1453,6 +1466,7 @@ async function vistaDetalle(aviso){
   const puedeVerificar = (rol === 'recepcion' || rol === 'admin') && b.estado === 'registrada';
   const puedeRecoger   = (rol === 'lavanderia' || rol === 'admin') && b.estado === 'verificada';
   const puedeEntregar  = (rol === 'lavanderia' || rol === 'admin') && b.estado === 'recogida';
+  const puedeRecibir   = (rol === 'recepcion'  || rol === 'admin') && b.estado === 'entregada';
   const cuenta = puedeRecoger;   // solo lavandería cuenta y pesa
 
   app.innerHTML = `
@@ -1479,8 +1493,10 @@ async function vistaDetalle(aviso){
           ? esc(b.verificada_por_nombre) + '<br>' + sello(b.verificada_en) : 'Pendiente'}</dd></div>
         <div><dt>Recojo</dt><dd>${b.validado_por_nombre
           ? esc(b.validado_por_nombre) + '<br>' + sello(b.validado_en) : 'Pendiente'}</dd></div>
-        <div><dt>Entrega</dt><dd>${b.entregada_por_nombre
+        <div><dt>Deja en hotel</dt><dd>${b.entregada_por_nombre
           ? esc(b.entregada_por_nombre) + '<br>' + sello(b.entregada_en) : 'Pendiente'}</dd></div>
+        <div><dt>Entrega al trabajador</dt><dd>${b.recibida_por_nombre
+          ? esc(b.recibida_por_nombre) + '<br>' + sello(b.recibida_en) : 'Pendiente'}</dd></div>
       </dl>
     </div>
 
@@ -1489,7 +1505,7 @@ async function vistaDetalle(aviso){
     <div class="totales"><h2>${cuenta ? 'Conteo de prendas' : 'Prendas declaradas'}</h2></div>
     <table>
       <thead><tr><th>Prenda</th><th class="num">Declarado</th>${
-        cuenta || b.estado === 'recogida' || b.estado === 'entregada'
+        cuenta || ['recogida','entregada','recibida'].includes(b.estado)
           ? '<th class="num">Contado</th>' : ''}</tr></thead>
       <tbody>
         ${detalle.map(i => {
@@ -1501,14 +1517,14 @@ async function vistaDetalle(aviso){
               ? `<td class="num"><input type="number" min="0" class="mono" style="text-align:center"
                    data-cont="${i.id}" aria-label="Cantidad contada de ${i.tipo_ropa}"
                    value="${esc(i.contado)}"></td>`
-              : (b.estado === 'recogida' || b.estado === 'entregada'
+              : (['recogida','entregada','recibida'].includes(b.estado)
                   ? `<td class="num mono">${i.cantidad_confirmada ?? '—'}</td>` : '')}
           </tr>`;
         }).join('')}
         <tr class="total"><td style="text-align:right">Totales</td>
           <td class="num mono">${b.total_prendas}</td>
           ${cuenta ? `<td class="num mono" style="${dif?'color:var(--sello)':''}">${contado}</td>`
-            : (b.estado === 'recogida' || b.estado === 'entregada' ? `<td class="num mono"></td>` : '')}
+            : (['recogida','entregada','recibida'].includes(b.estado) ? `<td class="num mono"></td>` : '')}
         </tr>
       </tbody>
     </table>
@@ -1521,6 +1537,13 @@ async function vistaDetalle(aviso){
       <div><label for="obsl">Observaciones del recojo</label>
         <input id="obsl" value="${esc(valida.obs)}"
           placeholder="Prendas faltantes, manchas, detalles…"></div>
+    </div>` : ''}
+
+    ${puedeRecibir ? `
+    <div style="margin-top:24px">
+      <label for="obsr">Quién recibe y observaciones</label>
+      <input id="obsr" value="${esc(valida.recibida)}"
+        placeholder="Opcional: si recoge otra persona, anota quién">
     </div>` : ''}
 
     ${puedeEntregar ? `
@@ -1539,7 +1562,8 @@ async function vistaDetalle(aviso){
     <div class="acciones">
       ${puedeVerificar ? `<button class="btn" id="verificar">Dar visto bueno de recepción</button>` : ''}
       ${puedeRecoger ? `<button class="btn" id="recoger">Confirmar recojo</button>` : ''}
-      ${puedeEntregar ? `<button class="btn verde" id="entregar">Confirmar entrega al hotel</button>` : ''}
+      ${puedeEntregar ? `<button class="btn" id="entregar">Confirmar entrega al hotel</button>` : ''}
+      ${puedeRecibir ? `<button class="btn verde" id="recibir">Confirmar entrega al trabajador</button>` : ''}
       ${b.estado !== 'registrada' ? `<button class="btn2" id="pdfDet">Descargar PDF</button>` : ''}
     </div>`;
 
@@ -1558,10 +1582,12 @@ async function vistaDetalle(aviso){
   document.getElementById('kg')?.addEventListener('input', e => valida.kilos = e.target.value);
   document.getElementById('obsl')?.addEventListener('input', e => valida.obs = e.target.value);
   document.getElementById('obse')?.addEventListener('input', e => valida.entrega = e.target.value);
+  document.getElementById('obsr')?.addEventListener('input', e => valida.recibida = e.target.value);
 
   document.getElementById('verificar')?.addEventListener('click', verificar);
   document.getElementById('recoger')?.addEventListener('click', recoger);
   document.getElementById('entregar')?.addEventListener('click', entregar);
+  document.getElementById('recibir')?.addEventListener('click', recibir);
 
   document.getElementById('pdfDet')?.addEventListener('click', async e => {
     e.target.disabled = true; e.target.textContent = 'Generando…';
@@ -1606,6 +1632,7 @@ function guardarCampos(){
   valida.kilos = document.getElementById('kg')?.value ?? valida.kilos;
   valida.obs = document.getElementById('obsl')?.value ?? valida.obs;
   valida.entrega = document.getElementById('obse')?.value ?? valida.entrega;
+  valida.recibida = document.getElementById('obsr')?.value ?? valida.recibida;
 }
 
 async function aplicar(cambios, boton, rotulo){
@@ -1659,6 +1686,16 @@ function entregar(){
     entregada_por_nombre: perfil.nombre,
     entregada_en: new Date().toISOString()
   }, 'entregar', 'Registrando…');
+}
+
+function recibir(){
+  guardarCampos();
+  return aplicar({
+    estado: 'recibida',
+    obs_recibida: valida.recibida.trim() || null,
+    recibida_por_nombre: perfil.nombre,
+    recibida_en: new Date().toISOString()
+  }, 'recibir', 'Registrando…');
 }
 
 async function cambiarHotel(){
