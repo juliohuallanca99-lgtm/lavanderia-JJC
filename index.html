@@ -443,6 +443,7 @@ async function render(){
 
   if (r === '/') { if (sesion) await cargarPerfil(); return vistaPortal(); }
   if (r === '/panel') return vistaPrivada();
+  if (r === '/personal') return vistaPersonal();
 
   if (r === '/boleta' || r === '/mis-boletas' || r === '/clave') {
     if (!sesion) return vistaAcceso(null, dniPrefill);
@@ -493,9 +494,25 @@ function vistaAcceso(aviso, dni=''){
     if (!c) return vistaAcceso('Escribe tu contraseña.', d);
     const btn = document.getElementById('tentrar');
     btn.disabled = true; btn.textContent = 'Ingresando…';
-    const { error } = await sb.auth.signInWithPassword({
-      email: d + '@lavanderia.jjc', password: c });
-    if (error) vistaAcceso('Documento o contraseña incorrectos.', d);
+    const correo = d + '@lavanderia.jjc';
+
+    const { error } = await sb.auth.signInWithPassword({ email: correo, password: c });
+    if (!error) return;
+
+    // Puede ser alguien del padrón que todavía no tiene cuenta.
+    // Solo se crea si la contraseña es su propio documento; la base
+    // rechaza el alta si el documento no está en el padrón activo.
+    if (c !== d) return vistaAcceso('Documento o contraseña incorrectos.', d);
+
+    btn.textContent = 'Creando tu acceso…';
+    const { error: e2 } = await sb.auth.signUp({ email: correo, password: c });
+    if (e2) {
+      return vistaAcceso(/padrón/i.test(e2.message)
+        ? 'Tu documento no figura en el padrón de obra. Avisa a Administración.'
+        : 'Documento o contraseña incorrectos.', d);
+    }
+    const { error: e3 } = await sb.auth.signInWithPassword({ email: correo, password: c });
+    if (e3) vistaAcceso('Tu acceso quedó creado. Vuelve a intentar.', d);
   };
   document.getElementById('tentrar').addEventListener('click', go);
   document.getElementById('tclave').addEventListener('keydown', e => e.key === 'Enter' && go());
@@ -722,6 +739,167 @@ function vistaPortal(){
   document.getElementById('salirPortada')?.addEventListener('click', async () => {
     await sb.auth.signOut();
   });
+}
+
+
+/* ---------- Padrón de personal (solo admin) ---------- */
+let perBusca = '', perLista = null, perNuevo = null;
+
+const PER_CAMPOS = [
+  ['dni',     'DNI o carné',        'Obligatorio'],
+  ['nombres', 'Apellidos y nombres','Obligatorio'],
+  ['cargo',   'Cargo',              ''],
+  ['frente',  'Grupo de personal',  ''],
+  ['celular', 'Celular',            ''],
+  ['empresa', 'Empresa',            '']
+];
+
+async function vistaPersonal(aviso, ok){
+  if (!sesion) return vistaLogin();
+  await cargarPerfil();
+  if (!perfil.gestiona_padron) return vistaOtroRol();
+
+  app.innerHTML = `
+    <header class="barra">
+      <div><h1>Padrón de personal</h1>
+        <p class="sub">Quien está aquí puede entrar al portal. Su primera contraseña es su documento.</p></div>
+      <a class="btn2" href="#/panel">← Volver al panel</a>
+    </header>
+
+    <div class="fechas" style="margin-top:20px">
+      <div style="flex:2">
+        <label for="perq">Buscar por documento o nombre</label>
+        <input id="perq" value="${esc(perBusca)}" placeholder="Escribe al menos 3 caracteres">
+      </div>
+      <button class="btn2" id="perBuscar">Buscar</button>
+      <button class="btn" id="perAgregar">+ Agregar persona</button>
+    </div>
+
+    ${aviso ? `<p class="aviso" role="alert">${esc(aviso)}</p>` : ''}
+    ${ok ? `<p class="nota" style="border-left-color:var(--verde)">${esc(ok)}</p>` : ''}
+
+    ${perNuevo ? `
+      <div class="marco" style="margin-top:22px">
+        <h2 style="font-size:17px">Nueva persona</h2>
+        <div class="rejilla">
+          ${PER_CAMPOS.map(([k,et,ph]) => `
+            <div>
+              <label for="n_${k}">${et}</label>
+              <input id="n_${k}" data-nv="${k}" value="${esc(perNuevo[k])}" placeholder="${ph}">
+            </div>`).join('')}
+        </div>
+        <div class="acciones">
+          <button class="btn" id="perGuardar">Guardar en el padrón</button>
+          <button class="btn2" id="perCancelar">Cancelar</button>
+        </div>
+      </div>` : ''}
+
+    <div id="perRes"></div>`;
+
+  const q = document.getElementById('perq');
+  q.addEventListener('input', e => perBusca = e.target.value);
+  q.addEventListener('keydown', e => e.key === 'Enter' && buscarPersonal());
+  document.getElementById('perBuscar').addEventListener('click', buscarPersonal);
+
+  document.getElementById('perAgregar').addEventListener('click', () => {
+    perNuevo = { dni:'', nombres:'', cargo:'', frente:'', celular:'',
+                 empresa:'JJC CONTRATISTAS GENERALES S.A.' };
+    vistaPersonal();
+    document.getElementById('n_dni')?.focus();
+  });
+
+  app.querySelectorAll('[data-nv]').forEach(el =>
+    el.addEventListener('input', e => {
+      const k = e.target.dataset.nv;
+      perNuevo[k] = (k === 'dni' || k === 'celular')
+        ? e.target.value.replace(/\D/g,'') : e.target.value;
+      if (k === 'dni' || k === 'celular') e.target.value = perNuevo[k];
+    }));
+
+  document.getElementById('perCancelar')?.addEventListener('click', () => {
+    perNuevo = null; vistaPersonal();
+  });
+  document.getElementById('perGuardar')?.addEventListener('click', guardarPersona);
+
+  pintarPersonal();
+}
+
+function pintarPersonal(){
+  const caja = document.getElementById('perRes');
+  if (!caja || !perLista) return;
+  if (!perLista.length) {
+    caja.innerHTML = `<p class="marco" style="margin-top:22px;color:var(--texto)">
+      Nadie coincide con esa búsqueda.</p>`;
+    return;
+  }
+  caja.innerHTML = `<ul class="lista">${perLista.map(x => `
+    <li><div class="marco">
+      <div class="lin1">
+        <span class="numero mono" style="font-size:17px">${esc(x.dni)}</span>
+        <span class="estado ${x.activo ? 'paso5' : 'nula'}">${x.activo ? 'Activo' : 'Inactivo'}</span>
+      </div>
+      <p style="font-weight:600;margin:8px 0 0">${esc(x.nombres)}</p>
+      <p style="color:var(--texto);font-size:15px;margin:2px 0 0">${
+        esc(x.cargo || '—')}${x.frente ? ' · ' + esc(x.frente) : ''}</p>
+      <p style="color:var(--texto);font-size:15px;margin:2px 0 0">${
+        esc(x.empresa || '')}${x.celular ? ' · Cel. ' + esc(x.celular) : ''}</p>
+      <div class="acciones">
+        <button class="btn2" data-per-tog="${esc(x.dni)}" data-act="${x.activo}">
+          ${x.activo ? 'Dar de baja' : 'Reactivar'}</button>
+      </div>
+    </div></li>`).join('')}</ul>`;
+
+  caja.querySelectorAll('[data-per-tog]').forEach(el =>
+    el.addEventListener('click', () => cambiarEstadoPersona(
+      el.dataset.perTog, el.dataset.act !== 'true')));
+}
+
+async function buscarPersonal(){
+  const t = perBusca.trim();
+  if (t.length < 3) return vistaPersonal('Escribe al menos 3 caracteres para buscar.');
+  const { data, error } = await sb.from('personal').select('*')
+    .or(`dni.ilike.%${t}%,nombres.ilike.%${t}%`)
+    .order('nombres').limit(50);
+  if (error) return vistaPersonal('No se pudo buscar: ' + error.message);
+  perLista = data || [];
+  pintarPersonal();
+}
+
+async function guardarPersona(){
+  const n = perNuevo;
+  if (!/^\d{7,12}$/.test(n.dni)) return vistaPersonal('El documento debe tener entre 7 y 12 dígitos.');
+  if (!n.nombres.trim())          return vistaPersonal('Escribe los apellidos y nombres.');
+
+  const { error } = await sb.from('personal').insert({
+    dni: n.dni.trim(),
+    nombres: n.nombres.trim().toUpperCase(),
+    cargo: n.cargo.trim().toUpperCase() || null,
+    frente: n.frente.trim() || null,
+    celular: n.celular.trim() || null,
+    empresa: n.empresa.trim().toUpperCase() || null
+  });
+
+  if (error) {
+    return vistaPersonal(/duplicate|already exists/i.test(error.message)
+      ? 'Ese documento ya está en el padrón. Búscalo para revisarlo.'
+      : 'No se pudo guardar: ' + error.message);
+  }
+  const dni = n.dni.trim();
+  perNuevo = null; perBusca = dni;
+  await buscarPersonal();
+  vistaPersonal(null, `${dni} quedó en el padrón. Ya puede entrar al portal con su documento como usuario y contraseña.`);
+  perLista && pintarPersonal();
+}
+
+async function cambiarEstadoPersona(dni, activar){
+  const { error } = await sb.from('personal')
+    .update({ activo: activar, actualizado_en: new Date().toISOString() }).eq('dni', dni);
+  if (error) return vistaPersonal('No se pudo actualizar: ' + error.message);
+  await buscarPersonal();
+  vistaPersonal(null, activar
+    ? `${dni} reactivado: puede volver a entrar.`
+    : `${dni} dado de baja: deja de entrar y de ver sus boletas.`);
+  perLista && pintarPersonal();
 }
 
 /* ---------- Formulario ---------- */
@@ -1234,7 +1412,10 @@ async function vistaPanel(){
       <div><h1>${perfil.rol === 'recepcion' ? 'Boletas del hotel'
         : perfil.rol === 'ssgg' ? 'Todas las boletas' : 'Boletas de lavandería'}</h1>
       <p class="sub">${esc(perfil.nombre)} · ${ambito()}</p></div>
-      <button class="btn2" id="salir">Salir</button>
+      <div style="display:flex;gap:10px;flex-wrap:wrap">
+        ${perfil.gestiona_padron ? `<a class="btn2" href="#/personal">Personal</a>` : ''}
+        <button class="btn2" id="salir">Salir</button>
+      </div>
     </header>
     <div class="filtros">
       ${filtrosDeRol().map(([v,t]) =>
