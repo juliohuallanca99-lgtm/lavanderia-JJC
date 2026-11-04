@@ -34,6 +34,7 @@
   .mono{font-family:'IBM Plex Mono',ui-monospace,monospace}
   .cab{border-bottom:2px solid var(--tinta); padding-bottom:20px}
   .sub{color:var(--texto); max-width:62ch}
+  .pista{color:var(--texto); font-size:14px; margin:6px 0 0; line-height:1.4}
   .volver{font-weight:600; text-decoration:none; font-size:15px}
 
   /* ---- Portada renovada ---- */
@@ -433,7 +434,7 @@ function ir(r){ location.hash = '#' + r; }
 async function cargarPerfil(){
   if (perfil || !sesion) return perfil;
   const { data } = await sb.from('perfiles').select('*').eq('id', sesion.user.id).single();
-  perfil = data || { nombre: sesion.user.email, rol: 'recepcion' };
+  perfil = data || { nombre: sesion.user.email, rol: 'sin-perfil' };
   return perfil;
 }
 
@@ -443,11 +444,13 @@ async function render(){
 
   if (r === '/') { if (sesion) await cargarPerfil(); return vistaPortal(); }
   if (r === '/panel') return vistaPrivada();
+  if (r === '/sin-perfil') return vistaSinPerfil();
   if (r === '/personal') return vistaPersonal();
 
   if (r === '/boleta' || r === '/mis-boletas' || r === '/clave') {
     if (!sesion) return vistaAcceso(null, dniPrefill);
     await cargarPerfil();
+    if (perfil.rol === 'sin-perfil') return vistaSinPerfil();
     if (perfil.rol !== 'trabajador') return vistaOtroRol();
     if (!perfil.clave_cambiada) return vistaClave();
     if (r === '/clave')  return vistaClave();
@@ -534,6 +537,26 @@ function vistaAcceso(aviso, dni='', detalle=''){
   document.getElementById('tentrar').addEventListener('click', go);
   document.getElementById('tclave').addEventListener('keydown', e => e.key === 'Enter' && go());
   cdni.addEventListener('keydown', e => e.key === 'Enter' && document.getElementById('tclave').focus());
+}
+
+function vistaSinPerfil(){
+  const correo = sesion?.user?.email || '';
+  const dni = correo.endsWith('@lavanderia.jjc') ? correo.split('@')[0] : '';
+  app.innerHTML = `
+    <header class="cab">
+      <a class="volver" href="#/">← Inicio</a>
+      <h1>Tu cuenta aún no está habilitada</h1>
+    </header>
+    <p class="sub" style="margin-top:20px">Entraste correctamente, pero tu cuenta todavía no
+    tiene asignado un perfil en el sistema, así que no puede mostrarte nada.</p>
+    <p class="sub">Avisa a Administración de obra${dni ? ` indicando tu documento <strong>${esc(dni)}</strong>` : ''}.
+    Se resuelve en un minuto desde el panel.</p>
+    <div class="acciones">
+      <button class="btn" id="salirSinPerfil">Cerrar sesión</button>
+    </div>`;
+  document.getElementById('salirSinPerfil').addEventListener('click', async () => {
+    await sb.auth.signOut(); ir('/');
+  });
 }
 
 function vistaOtroRol(){
@@ -642,7 +665,7 @@ const icoLupa = `<svg viewBox="0 0 24 24" width="20" height="20" fill="none" str
 function vistaPortal(){
   emitida = null;
   app.className = 'ancho';
-  const quien = !sesion || !perfil ? 'visita'
+  const quien = !sesion || !perfil || perfil.rol === 'sin-perfil' ? 'visita'
               : perfil.rol === 'trabajador' ? 'trabajador' : 'gestion';
   const icoPin = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18"><path d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="2.5"/></svg>`;
   const icoBolso = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8h12l2 13H4L6 8Z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/><path d="M8 12h8"/></svg>`;
@@ -771,6 +794,25 @@ const PER_CAMPOS = [
   ['empresa', 'Empresa',            '']
 ];
 
+// Qué puede hacer cada rol en el portal. El orden es el del selector.
+const ROLES = [
+  ['trabajador', 'Trabajador',    'Registra y sigue su propia ropa'],
+  ['recepcion',  'Recepción',     'Verifica la entrega en un hotel'],
+  ['lavanderia', 'Lavandería',    'Cuenta, pesa y devuelve limpia'],
+  ['ssgg',       'SSGG',          'Ve todas las boletas y los reportes'],
+  ['admin',      'Administrador', 'Todo lo anterior, más anular y corregir']
+];
+
+// Administrador y SSGG solo los asigna un admin: el permiso de padrón
+// no debe alcanzar para repartir poder sobre las boletas cerradas.
+const ROLES_RESERVADOS = ['admin', 'ssgg'];
+const rolNombre = r => (ROLES.find(x => x[0] === r) || [,'Trabajador'])[1];
+const esAdmin = () => perfil?.rol === 'admin';
+
+// Empresas de lavandería, deducidas de los hoteles ya configurados.
+const LAVANDERIAS = Object.values(HOTELES)
+  .reduce((a, h) => a.some(x => x.ruc === h.ruc) ? a : a.concat([h]), []);
+
 async function vistaPersonal(aviso, ok){
   if (!sesion) return vistaLogin();
   await cargarPerfil();
@@ -797,16 +839,54 @@ async function vistaPersonal(aviso, ok){
 
     ${perNuevo ? `
       <div class="marco" style="margin-top:22px">
-        <h2 style="font-size:17px">Nueva persona</h2>
+        <h2 style="font-size:17px">${perNuevo._edita ? 'Editar persona' : 'Nueva persona'}</h2>
         <div class="rejilla">
           ${PER_CAMPOS.map(([k,et,ph]) => `
             <div>
               <label for="n_${k}">${et}</label>
-              <input id="n_${k}" data-nv="${k}" value="${esc(perNuevo[k])}" placeholder="${ph}">
+              <input id="n_${k}" data-nv="${k}" value="${esc(perNuevo[k])}" placeholder="${ph}"
+                     ${k === 'dni' && perNuevo._edita ? 'readonly style="background:#f1f3f6"' : ''}>
             </div>`).join('')}
+
+          <div>
+            <label for="n_rol">Tipo de acceso</label>
+            <select id="n_rol">
+              ${ROLES.filter(([v]) => esAdmin() || !ROLES_RESERVADOS.includes(v))
+                     .map(([v,et]) => `<option value="${v}"${
+                       perNuevo.rol === v ? ' selected' : ''}>${et}</option>`).join('')}
+            </select>
+            <p class="pista">${esc((ROLES.find(x => x[0] === perNuevo.rol) || [,,''])[2])}</p>
+          </div>
+
+          ${perNuevo.rol === 'recepcion' ? `
+            <div>
+              <label for="n_hospedaje">¿De qué hotel es la recepción?</label>
+              <select id="n_hospedaje">
+                <option value="">Elige el hotel</option>
+                ${Object.keys(HOTELES).map(h => `<option value="${esc(h)}"${
+                  perNuevo.hospedaje === h ? ' selected' : ''}>${esc(h)}</option>`).join('')}
+              </select>
+              <p class="pista">Solo verá las boletas de ese hotel.</p>
+            </div>` : ''}
+
+          ${perNuevo.rol === 'lavanderia' ? `
+            <div>
+              <label for="n_ruc">¿De qué empresa de lavandería?</label>
+              <select id="n_ruc">
+                <option value="">Elige la empresa</option>
+                ${LAVANDERIAS.map(l => `<option value="${esc(l.ruc)}"${
+                  perNuevo.ruc === l.ruc ? ' selected' : ''}>${esc(l.empresa)}</option>`).join('')}
+              </select>
+              <p class="pista">Solo verá las boletas de los hoteles que atiende.</p>
+            </div>` : ''}
         </div>
+
+        ${!esAdmin() ? `<p class="pista" style="margin-top:4px">Los accesos de
+          Administrador y SSGG los asigna el administrador del sistema.</p>` : ''}
+
         <div class="acciones">
-          <button class="btn" id="perGuardar">Guardar en el padrón</button>
+          <button class="btn" id="perGuardar">${
+            perNuevo._edita ? 'Guardar los cambios' : 'Guardar en el padrón'}</button>
           <button class="btn2" id="perCancelar">Cancelar</button>
         </div>
       </div>` : ''}
@@ -820,10 +900,22 @@ async function vistaPersonal(aviso, ok){
 
   document.getElementById('perAgregar').addEventListener('click', () => {
     perNuevo = { dni:'', nombres:'', cargo:'', frente:'', celular:'',
-                 empresa:'JJC CONTRATISTAS GENERALES S.A.' };
+                 empresa:'JJC CONTRATISTAS GENERALES S.A.',
+                 rol:'trabajador', hospedaje:'', ruc:'' };
     vistaPersonal();
     document.getElementById('n_dni')?.focus();
   });
+
+  document.getElementById('n_rol')?.addEventListener('change', e => {
+    perNuevo.rol = e.target.value;
+    if (perNuevo.rol !== 'recepcion')  perNuevo.hospedaje = '';
+    if (perNuevo.rol !== 'lavanderia') perNuevo.ruc = '';
+    vistaPersonal();
+  });
+  document.getElementById('n_hospedaje')?.addEventListener('change',
+    e => perNuevo.hospedaje = e.target.value);
+  document.getElementById('n_ruc')?.addEventListener('change',
+    e => perNuevo.ruc = e.target.value);
 
   app.querySelectorAll('[data-nv]').forEach(el =>
     el.addEventListener('input', e => {
@@ -860,7 +952,11 @@ function pintarPersonal(){
         esc(x.cargo || '—')}${x.frente ? ' · ' + esc(x.frente) : ''}</p>
       <p style="color:var(--texto);font-size:15px;margin:2px 0 0">${
         esc(x.empresa || '')}${x.celular ? ' · Cel. ' + esc(x.celular) : ''}</p>
+      <p style="font-size:15px;margin:6px 0 0"><strong>${esc(rolNombre(x.rol))}</strong>${
+        x.hospedaje ? ' · ' + esc(x.hospedaje) : ''}${
+        x.ruc ? ' · RUC ' + esc(x.ruc) : ''}</p>
       <div class="acciones">
+        <button class="btn2" data-per-edit="${esc(x.dni)}">Editar</button>
         <button class="btn2" data-per-tog="${esc(x.dni)}" data-act="${x.activo}">
           ${x.activo ? 'Dar de baja' : 'Reactivar'}</button>
       </div>
@@ -869,6 +965,18 @@ function pintarPersonal(){
   caja.querySelectorAll('[data-per-tog]').forEach(el =>
     el.addEventListener('click', () => cambiarEstadoPersona(
       el.dataset.perTog, el.dataset.act !== 'true')));
+
+  caja.querySelectorAll('[data-per-edit]').forEach(el =>
+    el.addEventListener('click', () => {
+      const x = perLista.find(p => p.dni === el.dataset.perEdit);
+      if (!x) return;
+      perNuevo = { dni:x.dni, nombres:x.nombres || '', cargo:x.cargo || '',
+                   frente:x.frente || '', celular:x.celular || '',
+                   empresa:x.empresa || '', rol:x.rol || 'trabajador',
+                   hospedaje:x.hospedaje || '', ruc:x.ruc || '', _edita:true };
+      vistaPersonal();
+      window.scrollTo(0, 0);
+    }));
 }
 
 async function buscarPersonal(){
@@ -883,28 +991,46 @@ async function buscarPersonal(){
 }
 
 async function guardarPersona(){
-  const n = perNuevo;
+  const n = perNuevo, edita = !!n._edita;
   if (!/^\d{7,12}$/.test(n.dni)) return vistaPersonal('El documento debe tener entre 7 y 12 dígitos.');
   if (!n.nombres.trim())          return vistaPersonal('Escribe los apellidos y nombres.');
+  if (n.rol === 'recepcion' && !n.hospedaje)
+    return vistaPersonal('Elige de qué hotel es la recepción: si no, entraría sin ver ninguna boleta.');
+  if (n.rol === 'lavanderia' && !n.ruc)
+    return vistaPersonal('Elige la empresa de lavandería: si no, entraría sin ver ninguna boleta.');
+  if (ROLES_RESERVADOS.includes(n.rol) && !esAdmin())
+    return vistaPersonal('Los accesos de Administrador y SSGG los asigna el administrador del sistema.');
 
-  const { error } = await sb.from('personal').insert({
-    dni: n.dni.trim(),
+  const fila = {
     nombres: n.nombres.trim().toUpperCase(),
     cargo: n.cargo.trim().toUpperCase() || null,
     frente: n.frente.trim() || null,
     celular: n.celular.trim() || null,
-    empresa: n.empresa.trim().toUpperCase() || null
-  });
+    empresa: n.empresa.trim().toUpperCase() || null,
+    rol: n.rol,
+    hospedaje: n.rol === 'recepcion'  ? n.hospedaje : null,
+    ruc:       n.rol === 'lavanderia' ? n.ruc       : null,
+    actualizado_en: new Date().toISOString()
+  };
+
+  const dni = n.dni.trim();
+  const { error } = edita
+    ? await sb.from('personal').update(fila).eq('dni', dni)
+    : await sb.from('personal').insert({ ...fila, dni });
 
   if (error) {
+    if (/Solo un administrador/i.test(error.message))
+      return vistaPersonal('Los accesos de Administrador y SSGG los asigna el administrador del sistema.');
     return vistaPersonal(/duplicate|already exists/i.test(error.message)
       ? 'Ese documento ya está en el padrón. Búscalo para revisarlo.'
       : 'No se pudo guardar: ' + error.message);
   }
-  const dni = n.dni.trim();
+
   perNuevo = null; perBusca = dni;
   await buscarPersonal();
-  vistaPersonal(null, `${dni} quedó en el padrón. Ya puede entrar al portal con su documento como usuario y contraseña.`);
+  vistaPersonal(null, edita
+    ? `${dni} actualizado. Si cambiaste su tipo de acceso, se aplica en cuanto vuelva a entrar.`
+    : `${dni} quedó en el padrón como ${rolNombre(fila.rol)}. Ya puede entrar con su documento como usuario y contraseña.`);
   perLista && pintarPersonal();
 }
 
@@ -1369,6 +1495,7 @@ function tarjetaTrabajador(b){
 async function vistaPrivada(){
   if (!sesion) return vistaLogin();
   await cargarPerfil();
+  if (perfil.rol === 'sin-perfil') return vistaSinPerfil();
   if (perfil.rol === 'trabajador') return vistaOtroRol();
   if (!filtro) filtro = filtrosDeRol()[0][0];
   if (abierta) return vistaDetalle();
